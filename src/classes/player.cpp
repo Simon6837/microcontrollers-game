@@ -20,13 +20,13 @@ void Player::clearPlayer()
 void Player::moveLeft()
 {
     clearPlayer();
-    x -= 10;
+    x -= 5;
     drawPlayer();
 }
 
 void Player::moveRight()
 {
     clearPlayer();
-    x += 10;
+    x += 5;
     drawPlayer();
 }
