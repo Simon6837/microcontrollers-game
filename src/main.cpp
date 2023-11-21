@@ -21,7 +21,7 @@
 
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
-Player player(200, 280, &LCD); // Instantiate player object
+Player player(120, 280, &LCD); // Instantiate player object
 
 // Declare all functions
 void ControlPlayer(void);
@@ -50,6 +50,8 @@ void setup()
   LCD.setRotation(2);
   // check if the screen is working with some simple text TODO: remove this after testing
   LCD.println("Hello World!");
+  // draw the player on the screen for the first time
+  player.drawPlayer();
 }
 
 int main(void)
