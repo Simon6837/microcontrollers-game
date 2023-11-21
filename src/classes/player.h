@@ -1,15 +1,21 @@
-// #ifndef PLAYER_H
-// #define PLAYER_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
-// class Player
-// {
-//     public:
-//         Player(uint8_t x, uint16_t y);
-//         void draw_player();
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
 
-//     protected:
-//         uint8_t x;
-//         uint16_t y;
-// };
+class Player
+{
+private:
+    int x, y;
+    Adafruit_ILI9341 *LCD;
 
-// #endif
+public:
+    Player(int initialX, int initialY, Adafruit_ILI9341 *lcd);
+    void drawPlayer();
+    void clearPlayer();
+    void moveLeft();
+    void moveRight();
+};
+
+#endif

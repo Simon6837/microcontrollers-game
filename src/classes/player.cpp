@@ -1,12 +1,32 @@
-// #include "player.h"
+#include "Player.h"
 
-// Player::Player()
-// {
-//     this->x = x;
-//     this->y = y;
-// };
+Player::Player(int initialX, int initialY, Adafruit_ILI9341 *lcd)
+{
+    x = initialX;
+    y = initialY;
+    LCD = lcd;
+}
 
-// void Player::draw_player()
-// {
-//     tft.fillCircle(x, y, 20, ILI9341_BLACK);
-// }
+void Player::drawPlayer()
+{
+    LCD->fillCircle(x, y, 20, ILI9341_WHITE);
+}
+
+void Player::clearPlayer()
+{
+    LCD->fillCircle(x, y, 20, ILI9341_BLACK);
+}
+
+void Player::moveLeft()
+{
+    clearPlayer();
+    x -= 10;
+    drawPlayer();
+}
+
+void Player::moveRight()
+{
+    clearPlayer();
+    x += 10;
+    drawPlayer();
+}
