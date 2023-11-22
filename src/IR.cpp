@@ -15,8 +15,9 @@ void Timer0_innit(){ //initializes timer0 for ir communication
         CS0[2:0] = 0b001 (1/8 prescaler)
 
         (OCR0A + 1) * N / F_CPU = 1/36000 s
-        OCR0A = 1/38000 * (16000000/8) - 1 = 54.5555556 
-        OCR0A on 55 gives around 35714 hz
+        OCR0A = 1/38000 * (16000000) - 1 = 421
+        421/2 gives us 210.5 which can't fit in OCR0A, rounding up to 211 gives us a result close to 38kHz which will still work for communication.
+        OCR0A on 211 gives around 37732 hz
     */
 
    TCCR0A |= (1 << WGM01);
