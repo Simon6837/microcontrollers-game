@@ -10,9 +10,9 @@ void IR_innit(){ //initializes the infraredcommunication
 void Timer0_innit(){ //initializes timer0 for ir communication
     /* timer0 statistics
         
-        COM0A[1:0] = 0b01 (toggle OC0A) COM0B[1:0] = 0b00 (OC0B) discontected
+        COM0A[1:0] = 0b00 (OC0A discontected) COM0B[1:0] = 0b00 (OC0B discontected)
         WGM0[2:0] = 0b010 (Mode 2: CTC)
-        CS0[2:0] = 0b001 (1/8 prescaler)
+        CS0[2:0] = 0b001 (no prescaler)
 
         (OCR0A + 1) * N / F_CPU = 1/36000 s
         OCR0A = 1/38000 * (16000000) - 1 = 421
