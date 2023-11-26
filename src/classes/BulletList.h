@@ -18,6 +18,7 @@ public:
     void addBullet(Bullet *bullet);
     void updateBullets();
     int8_t getBulletCount();
+    int16_t getLastButtonYPosition();
 };
 
 #endif // BULLET_LIST_H
