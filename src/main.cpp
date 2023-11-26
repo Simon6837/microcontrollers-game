@@ -8,14 +8,16 @@
 #include <HardwareSerial.h>
 // classes
 #include "classes/Player.h"
+#include "classes/BulletList.h"
 #include "classes/NunchukController.h" // Include the new header
 // pins for the screen
 #define TFT_CS 10
 #define TFT_DC 9
-//setup needed objects
+// setup needed objects
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
-Player player(120, 280, &LCD, &nunchukController);
+BulletList bulletList;
+Player player(120, 280, &LCD, &nunchukController, &bulletList);
 
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
@@ -36,6 +38,7 @@ int main(void)
   while (1)
   {
     player.controlPlayer();
+    bulletList.updateBullets();
   }
   return 0;
 }

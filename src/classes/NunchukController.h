@@ -9,6 +9,7 @@ public:
   NunchukController();
   void initialize();
   uint8_t updatePlayerControl();
+  bool isZButtonPressed();
 
 private:
   NunChuk nunchuk; // Declare the Nunchuk object
