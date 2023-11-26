@@ -10,12 +10,12 @@ Bullet::Bullet(uint8_t initialX, uint16_t initialY, Adafruit_ILI9341 *lcd)
 
 void Bullet::clearBullet()
 {
-    LCD->fillRect(x, y, 3, 6, ILI9341_BLACK);
+    LCD->fillRect(x, y, 6, 12, ILI9341_BLACK);
 }
 
 void Bullet::drawBullet()
 {
-    LCD->fillRect(x, y, 3, 6, ILI9341_YELLOW);
+    LCD->fillRect(x, y, 6, 12, ILI9341_YELLOW);
 }
 
 uint16_t Bullet::getYPosition()
