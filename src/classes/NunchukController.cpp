@@ -39,3 +39,9 @@ uint8_t NunchukController::updatePlayerControl()
   }
   return 2;
 }
+
+bool NunchukController::isZButtonPressed()
+{
+  nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
+  return nunchuk.state.z_button;
+}
