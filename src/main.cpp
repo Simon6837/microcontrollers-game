@@ -7,6 +7,7 @@
 #include <avr/interrupt.h>
 #include <HardwareSerial.h>
 // classes
+#include "classes/IR.h"
 #include "classes/Player.h"
 #include "classes/BulletList.h"
 #include "classes/NunchukController.h" // Include the new header
@@ -18,6 +19,7 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 BulletList bulletList;
 Player player(120, 280, &LCD, &nunchukController, &bulletList);
+IR ir_comm;
 
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
@@ -30,13 +32,18 @@ void setup()
   LCD.setRotation(2);
   player.drawPlayer();
   nunchukController.initialize();
+  ir_comm.IR_innit();
+}
+
+ISR (TIMER0_COMPA_vect){
+    PORTD ^= (1 << PORTD6);
 }
 
 int main(void)
 {
   setup();
   while (1)
-  {
+  { 
     player.controlPlayer();
     bulletList.updateBullets();
   }
