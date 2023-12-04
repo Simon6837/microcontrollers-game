@@ -2,7 +2,7 @@
 #include "Bullet.h"
 
 #define PLAYER_SPEED 2          // the speed at which the player moves
-#define BULLET_Y_OFFSET 35      // the offset from the player's y position for creating bullets
+#define BULLET_Y_OFFSET 10      // the offset from the player's y position for creating bullets
 #define BULLET_Y_TRESHOLD 200   // the y position at which the player can't create bullets
 #define BULLET_AMOUNT_ALLOWED 2 // the amount of bullets the player can have on the screen at once
 
