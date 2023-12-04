@@ -21,21 +21,27 @@ NunchukController nunchukController;
 Player player(120, 280, &LCD, &nunchukController);
 volatile uint8_t ADCval;
 
-void initTimer2(void)
+void initTimer1(void)
 {
-  TCCR2A = 0; //clear timer
-  TCCR2A |=(1<<WGM20)|(1<<WGM21); // Fast PWM mode
-  TCCR2A |= (1<<COM2A1); // PWM mode, non-inverting
-  //TCCR2A |= (1<<COM2B1);
-  //TCCR2B |= (1<<CS21);
-  TCCR2B |= (1<<CS22); // prescale /256
-  //TIMSK2 |= (1<<TOIE2); //interrupt on TOV
+ /* timer1 statistics
+        
+        COM1x[1:0] 0b00 (pins disconected)
+        WGM0[3:0] = 0b0101 (mode 5: fast pwm 8-bit)
+        CS0[2:0] = 0b001 (no prescaler)
+
+      OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+    */
+   TCCR1A |= (1 << WGM10);
+   TCCR1B |= (1 << WGM12) | (1 << CS10);
+   TCNT1 = 0; //reset timer
+   TIMSK1 |= (1 << OCIE1A) | (1 << TOIE1); //eneable interupt on compare match A and on overFlow
+
 }
 
 void initADC(void)
 {
   ADMUX |= (1<<REFS0); // reference voltage on AVCC
-  ADMUX |= (1<<MUX0);
+  ADMUX &= ~(1<<MUX0);
   ADCSRB &= ~(1<<ADTS2)|(1<<ADTS1)|(1<<ADTS0); // freerunning
   ADCSRA |= (1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); //ADC clock prescaler /128
   ADCSRA |= (1<<ADATE); //enable ADC auto trigger 
@@ -48,22 +54,29 @@ void initADC(void)
 
 ISR(ADC_vect)
 {
-  //ADCval = ADC / 4;
-  OCR1A = ADCH;
+  if (ADCH <= 10){ // limit the brightness to prevent flickering on the screen
+    return;
+  }
+  OCR1AL = ADCH;  //set OCR1A for dutycycle
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-  TCCR1A ^= (1<<COM1A1); // toggle from non-inverting to disabled and vice versa
+  PORTD &= ~(1 << PORTD5);
+}
+
+ISR(TIMER1_OVF_vect){
+  PORTD |= (1 << PORTD5);
 }
 
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
+ * Also initializes the timers and the ADC.
  */
 void setup()
 {
   sei();
-  initTimer2();
+  initTimer1();
   initADC();
   Serial.begin(9600);
   LCD.begin();
@@ -73,25 +86,14 @@ void setup()
   nunchukController.initialize();
 }
 
-void changeBrightness() {
-;
-}
-
 int main(void)
 {
   setup();
-  //pinMode(backlight_pin, LOW);
-  //PORTD |= (1<<PORTB5);
-  //analogWrite(backlight_pin, ADCval);
-  DDRB |= (1<<DDB5);
+  DDRD |= (1<<DDD5) | (1 << DDD4) | (1 << DDD3);
+  PORTD |= (1<<PORTD5);
   while (1)
   {
     player.controlPlayer();
-    //Serial.println(ADC/4);
-    //changeBrightness();
-    //Serial.println(ADCval);
-    //analogWrite(backlight_pin, ADCval);
-    //DDRB |= (1<<DDB5);
   }
   return 0;
 }
