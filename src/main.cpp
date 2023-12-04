@@ -10,6 +10,7 @@
 #include "classes/IR.h"
 #include "classes/Player.h"
 #include "classes/BulletList.h"
+#include "classes/Enemy.h"
 #include "classes/NunchukController.h" // Include the new header
 // pins for the screen
 #define TFT_CS 10 // Chip select line for TFT display
@@ -19,6 +20,7 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 BulletList bulletList;
 Player player(120, 280, &LCD, &nunchukController, &bulletList);
+Enemy enemy(120, 280, &LCD);
 IR ir_comm;
 
 /**
@@ -30,8 +32,9 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
-  player.drawPlayer();
-  nunchukController.initialize();
+  enemy.drawEnemy();
+  // player.drawPlayer();
+  // nunchukController.initialize();
   ir_comm.IR_innit();
 }
 
@@ -44,8 +47,9 @@ int main(void)
   setup();
   while (1)
   { 
-    player.controlPlayer();
-    bulletList.updateBullets();
+    // player.controlPlayer();
+    // bulletList.updateBullets();
+    enemy.drawEnemy();
   }
   return 0;
 }
