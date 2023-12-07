@@ -16,21 +16,22 @@
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFT
 
-const uint16_t onesecondcount = 38000;
+const long fivesecondcount = 190000; // one second is 38000 (timer0 runs at 38khz)
 // setup needed objects
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 BulletList bulletList;
 Player player(120, 280, &LCD, &nunchukController, &bulletList);
 IR ir_comm;
+Enemy allenemies(0, 0, &LCD, 0);
 Enemy enemy0(30, 35, &LCD, 0);
 Enemy enemy1(30, 35, &LCD, 1);
 Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
-                     {enemy0, enemy0, enemy0, enemy0, enemy0},
-                     {enemy0, enemy0, enemy0, enemy0, enemy0},
-                     {enemy0, enemy0, enemy0, enemy0, enemy0}};
+                    {enemy0, enemy0, enemy0, enemy0, enemy0},
+                    {enemy0, enemy0, enemy0, enemy0, enemy0},
+                    {enemy0, enemy0, enemy0, enemy0, enemy0}};
 
-uint16_t counteronesec = 0;
+long counteronesec = 0;
 uint8_t timemovement = 0;
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
@@ -53,51 +54,22 @@ void setup()
   ir_comm.IR_innit();
 }
 
-
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
   counteronesec++;
 
-  if (counteronesec == onesecondcount)
+  if (counteronesec == fivesecondcount)
   {
-    // Move enemies horizontally
-    for (uint8_t j = 0; j < 4; j++)
-    {
-      for (uint8_t i = 0; i < 5; i++)
-      {
-        enemies[j][i].drawEnemy((i * 40) + (4 * timemovement), (j * 50));
-      }
-    }
-
-    // Move to the next horizontal position
+    allenemies.moveEnemy(enemies, timemovement, enemy0);
     timemovement++;
-
-    // Check if enemies can't move horizontally anymore
-    if (timemovement == 4)
+    if (timemovement == 5)
     {
-      // Move enemies to the next row
-      for (uint8_t j = 3; j > 0; j--)
-      {
-        for (uint8_t i = 0; i < 5; i++)
-        {
-          enemies[j][i] = enemies[j - 1][i];
-        }
-      }
-
-      // Reset the first row to the initial state
-      for (uint8_t i = 0; i < 5; i++)
-      {
-      }
-
-      // Reset timemovement
       timemovement = 0;
     }
-
     counteronesec = 0;
   }
 }
-
 
 int main(void)
 {
