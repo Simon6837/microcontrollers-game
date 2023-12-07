@@ -23,9 +23,9 @@ NunchukController nunchukController;
 BulletList bulletList;
 Player player(120, 280, &LCD, &nunchukController, &bulletList);
 IR ir_comm;
-Enemy *enemy0 = new Enemy(30, 35, &LCD, 0);
-Enemy *enemy1 = new Enemy(30, 35, &LCD, 1);
-Enemy *enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
+Enemy enemy0(30, 35, &LCD, 0);
+Enemy enemy1(30, 35, &LCD, 1);
+Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
                      {enemy0, enemy0, enemy0, enemy0, enemy0},
                      {enemy0, enemy0, enemy0, enemy0, enemy0},
                      {enemy0, enemy0, enemy0, enemy0, enemy0}};
@@ -45,7 +45,7 @@ void setup()
   {
     for (uint8_t i = 0; i < 5; i++)
     {
-      enemies[j][i]->drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+      enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
     }
   }
   player.drawPlayer();
@@ -53,32 +53,51 @@ void setup()
   ir_comm.IR_innit();
 }
 
+
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
   counteronesec++;
-  if (counteronesec == onesecondcount){
-    if (timemovement < 4)
-    {timemovement++;
-      for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
+
+  if (counteronesec == onesecondcount)
   {
-    for (uint8_t i = 0; i < 5; i++)
+    // Move enemies horizontally
+    for (uint8_t j = 0; j < 4; j++)
     {
-      enemies[j][i]->drawEnemy((i * 40) + (4 * timemovement), (j * 50)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+      for (uint8_t i = 0; i < 5; i++)
+      {
+        enemies[j][i].drawEnemy((i * 40) + (4 * timemovement), (j * 50));
+      }
     }
-  }}
-    else 
-    {timemovement = 0;
-          for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
-  {
-    for (uint8_t i = 0; i < 5; i++)
+
+    // Move to the next horizontal position
+    timemovement++;
+
+    // Check if enemies can't move horizontally anymore
+    if (timemovement == 4)
     {
-      enemies[j][i]->drawEnemy((i * 40)  + (1 * timemovement), (j * 50)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+      // Move enemies to the next row
+      for (uint8_t j = 3; j > 0; j--)
+      {
+        for (uint8_t i = 0; i < 5; i++)
+        {
+          enemies[j][i] = enemies[j - 1][i];
+        }
+      }
+
+      // Reset the first row to the initial state
+      for (uint8_t i = 0; i < 5; i++)
+      {
+      }
+
+      // Reset timemovement
+      timemovement = 0;
     }
-  }}
+
     counteronesec = 0;
   }
 }
+
 
 int main(void)
 {
