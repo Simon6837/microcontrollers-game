@@ -6,7 +6,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <HardwareSerial.h>
-#include <avr/io.h>
 // classes
 #include "classes/Player.h"
 #include "classes/NunchukController.h" // Include the new header
