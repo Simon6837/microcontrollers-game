@@ -21,7 +21,3 @@ void Enemy::drawEnemy(uint8_t xOffset, uint16_t yOffset)
         LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_WHITE);
     }
 }
-
-void Enemy::killEnemy(){
-    Enemy::type = 0;
-}
