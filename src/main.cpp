@@ -13,13 +13,10 @@
 // pins for the screen
 #define TFT_CS 10
 #define TFT_DC 9
-#define backlight_pin 5
-#define test_pin 1
 //setup needed objects
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 Player player(120, 280, &LCD, &nunchukController);
-volatile uint8_t ADCval;
 
 void initTimer1(void)
 {
