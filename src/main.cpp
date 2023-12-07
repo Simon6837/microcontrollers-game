@@ -18,7 +18,7 @@
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 BulletList bulletList;
-Player player(120, 280, &LCD, &nunchukController, &bulletList);
+Player player(120, 280, 3, &LCD, &nunchukController, &bulletList);
 IR ir_comm;
 
 /**
@@ -28,11 +28,13 @@ void setup()
 {
   sei();
   LCD.begin();
+  Wire.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
   player.drawPlayer();
   nunchukController.initialize();
   ir_comm.IR_innit();
+  player.displayLives();
 }
 
 ISR (TIMER0_COMPA_vect){
@@ -43,7 +45,7 @@ int main(void)
 {
   setup();
   while (1)
-  { 
+  {
     player.controlPlayer();
     bulletList.updateBullets();
   }
