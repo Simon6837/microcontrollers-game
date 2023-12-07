@@ -52,6 +52,12 @@ void initADC(void)
   ADMUX |= (1<<ADLAR); //ADC Left adjust
 }
 
+void initPotpins()
+{
+  DDRD |= (1<<DDD5) | (1 << DDD4) | (1 << DDD3);
+  PORTD |= (1<<PORTD5);
+}
+
 ISR(ADC_vect)
 {
   if (ADCH <= 10){ // limit the brightness to prevent flickering on the screen
@@ -78,6 +84,7 @@ void setup()
   sei();
   initTimer1();
   initADC();
+  initPotpins();
   Serial.begin(9600);
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
@@ -89,8 +96,6 @@ void setup()
 int main(void)
 {
   setup();
-  DDRD |= (1<<DDD5) | (1 << DDD4) | (1 << DDD3);
-  PORTD |= (1<<PORTD5);
   while (1)
   {
     player.controlPlayer();
