@@ -14,9 +14,10 @@ private:
     Adafruit_ILI9341 *LCD;
     NunchukController *nunchukController;
     BulletList *bulletList;
+    bool playerIsMoving;
 
 public:
-    Player(uint8_t initialX, uint16_t initialY, Adafruit_ILI9341 *lcd, NunchukController *nunchukController, BulletList *bulletList);
+    Player(uint8_t initialX, uint16_t initialY, Adafruit_ILI9341 *lcd, NunchukController *nunchukController, BulletList *bulletList, bool *playerIsMovingValue);
     void drawPlayer();
     void clearPlayer();
     void moveLeft();

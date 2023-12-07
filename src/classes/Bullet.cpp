@@ -23,10 +23,10 @@ uint16_t Bullet::getYPosition()
     return y;
 }
 
-void Bullet::moveUp()
+void Bullet::moveUp(uint8_t speed)
 {
     clearBullet();
-    y -= bulletSpeed;
+    y -= speed;
     drawBullet();
 }
 

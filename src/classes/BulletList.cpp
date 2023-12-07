@@ -1,10 +1,14 @@
 // BulletList.cpp
 #include "BulletList.h"
 #define SCREEN_TOP_OFFSET 10 // the offset from the top of the screen for deleting bullets
-BulletList::BulletList() : head(nullptr) {}
+BulletList::BulletList(bool *playerIsMovingValue)
+{
+    playerIsMoving = playerIsMovingValue;
+    head = nullptr;
+}
 /**
  * @brief Adds a bullet to the list
-*/
+ */
 void BulletList::addBullet(Bullet *bullet)
 {
     Node *newNode = new Node;
@@ -36,7 +40,14 @@ void BulletList::updateBullets()
             continue;
         }
         else
-            temp->bullet->moveUp();
+        {
+            uint8_t speed = 0;
+            if (playerIsMoving)
+                speed = 10;
+            else
+                speed = 2;
+            temp->bullet->moveUp(speed);
+        }
         prev = temp;
         temp = temp->next;
     }
@@ -69,4 +80,17 @@ int16_t BulletList::getLastButtonYPosition()
         temp = temp->next;
     }
     return 0;
+}
+
+BulletList::~BulletList()
+{
+    Node *current = head;
+    while (current != nullptr)
+    {
+        Node *next = current->next;
+        delete current->bullet;
+        delete current;
+        current = next;
+    }
+    head = nullptr;
 }
