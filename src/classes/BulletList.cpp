@@ -81,7 +81,9 @@ int16_t BulletList::getLastButtonYPosition()
     }
     return 0;
 }
-
+/**
+ * @brief Deletes all the bullets in the list and the list itself
+ */
 BulletList::~BulletList()
 {
     Node *current = head;

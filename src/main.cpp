@@ -15,15 +15,14 @@
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFT
 
-const uint16_t counterUpdateBulletsThreshold = 1267;
-// setup needed objects
+// setup needed objects and shared variables
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
-volatile bool playerIsMoving = false;
+bool playerIsMoving = false;
 BulletList bulletList(&playerIsMoving);
 Player player(120, 280, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
-
+const uint16_t counterUpdateBulletsThreshold = 1267;
 volatile uint16_t counterUpdateBullets = 0;
 
 /**
@@ -40,6 +39,11 @@ void setup()
   ir_comm.IR_innit();
 }
 
+/**
+ * @brief Interrupt service routine for the timer
+ * @note Updates the position of the bullets(to prevent delays on the screen)
+ * @note Toggles the LED for the IR communication
+ */
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
@@ -51,6 +55,10 @@ ISR(TIMER0_COMPA_vect)
   }
 }
 
+/**
+ * @brief Main loop
+ * @note Controls the player
+ */
 int main(void)
 {
   setup();
