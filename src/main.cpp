@@ -97,7 +97,7 @@ void setup()
 }
 
 ISR (TIMER0_COMPA_vect){
-    PORTD ^= (1 << PORTD6);
+
 }
 
 int main(void)

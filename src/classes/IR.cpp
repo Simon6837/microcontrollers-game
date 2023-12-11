@@ -14,7 +14,7 @@ void IR::IR_innit(){ //initializes the infraredcommunication
 void IR::Timer0_innit(){ //initializes timer0 for ir communication
     /* timer0 statistics
         
-        COM0A[1:0] = 0b00 (OC0A discontected) COM0B[1:0] = 0b00 (OC0B discontected)
+        COM0A[1:0] = 0b01 (OC0A discontected) COM0B[1:0] = 0b00 (OC0B discontected)
         WGM0[2:0] = 0b010 (Mode 2: CTC)
         CS0[2:0] = 0b001 (no prescaler)
 
@@ -24,7 +24,7 @@ void IR::Timer0_innit(){ //initializes timer0 for ir communication
         OCR0A on 211 gives around 37732 hz
     */
 
-   TCCR0A |= (1 << WGM01);
+   TCCR0A |= (1 << WGM01) | (1 << COM0A0);
    TCCR0B |= (1 << CS00);
    OCR0A = 211;
    TCNT0 = 0;
