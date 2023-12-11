@@ -17,7 +17,7 @@ public:
     void clearBullet();
     uint16_t getYPosition();
     // moves the bullet up
-    void moveUp();
+    void moveUp(uint8_t speed);
     virtual ~Bullet();
 };
 
