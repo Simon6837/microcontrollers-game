@@ -1,10 +1,11 @@
 // libraries
 #include <Adafruit_GFX.h>
 #include <SPI.h>
-// #include <Wire.h>
+#include <Wire.h>
 #include <Adafruit_ILI9341.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <HardwareSerial.h>
 // classes
 #include "classes/IR.h"
 #include "classes/Player.h"
@@ -43,10 +44,26 @@ void initTimer1(void)
 
        OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
      */
-  TCCR1A |= (1 << WGM10);
-  TCCR1B |= (1 << WGM12) | (1 << CS10);
+  TCCR1B |= (1 << WGM12) | (1 << CS12);
   TCNT1 = 0;                              // reset timer
-  TIMSK1 |= (1 << OCIE1A) | (1 << TOIE1); // eneable interupt on compare match A and on overFlow
+  OCR1A = 2082;
+  TIMSK1 |= (1 << OCIE1A);
+}
+
+void initTimer2(void)
+{
+  /* timer2 statistics
+
+         COM2x[1:0] 0b00 (pins disconected)
+         WGM2[2:0] = 0b010 (mode 2: fast pwm 8-bit)
+         CS2[2:0] = 0b001 (no prescaler)
+
+       OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+     */
+  TCCR2A |= (1 << WGM20) | (1 << WGM21);
+  TCCR2B |= (1 << CS20);
+  TCNT2 = 0;                              // reset timer
+  TIMSK2 |= (1 << OCIE2A) | (1 << TOIE2); // enable interrupt on compare match A and on overflow
 }
 
 void initADC(void)
@@ -75,17 +92,21 @@ ISR(ADC_vect)
   { // limit the brightness to prevent flickering on the screen
     return;
   }
-  OCR1AL = ADCH; // set OCR1A for dutycycle
+  OCR2A = ADCH; // set OCR1A for dutycycle
 }
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER2_COMPA_vect)
 {
   PORTD &= ~(1 << PORTD5);
 }
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER2_OVF_vect)
 {
   PORTD |= (1 << PORTD5);
+}
+
+ISR(TIMER1_COMPA_vect){
+bulletList.updateBullets();
 }
 
 long counteronesec = 0;
@@ -97,9 +118,11 @@ uint8_t timemovement = 0;
 void setup()
 {
   sei();
+  initTimer2();
   initTimer1();
   initADC();
   initPotpins();
+  Wire.begin();
   Serial.begin(9600);
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
@@ -125,23 +148,17 @@ void setup()
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
-  counteronesec++;
-counterUpdateBullets++;
-  if (counterUpdateBullets == counterUpdateBulletsThreshold)
-  {
-    bulletList.updateBullets();
-    counterUpdateBullets = 0;
-  }
-  if (counteronesec == fivesecondcount)
-  {
-    allenemies.moveEnemy(enemies, timemovement, enemy0);
-    timemovement++;
-    if (timemovement == 5)
-    {
-      timemovement = 0;
-    }
-    counteronesec = 0;
-  }
+  // counteronesec++;
+  // if (counteronesec == fivesecondcount)
+  // {
+  //   allenemies.moveEnemy(enemies, timemovement, enemy0);
+  //   timemovement++;
+  //   if (timemovement == 5)
+  //   {
+  //     timemovement = 0;
+  //   }
+  //   counteronesec = 0;
+  // }
 }
 
 

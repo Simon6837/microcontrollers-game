@@ -8,7 +8,7 @@
 
 // can't move past these edges, so the player doesn't go off the screen
 // based on the size of the player and the size of the screen
-#define LEFT_EDGE 20
+#define LEFT_EDGE 10
 #define RIGHT_EDGE 220
 
 // values to draw the player
@@ -45,8 +45,11 @@ void Player::drawPlayer()
         for (int drawX = 0; drawX < PLAYER_WIDTH; ++drawX)
         {
             // Draw pixel using the color value in the array
+            //TODO: Remove turning off the interupt and just turn off the timer
             cli();
+            // TCCR1B ^= (1 << CS12); //stoping all other drawing
             LCD->fillRect((x + 10*drawX) - PLAYER_OFFSET, (y + 10*drawY), 10, 10, playerPixels[drawY][drawX]);
+            // TCCR1B ^= (1 << CS12); //restart all other drawing
             sei();
         }
     }
