@@ -16,54 +16,57 @@
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFT
 
-// setup needed objects
+// setup devices
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
+// varibles needed for the game
 bool playerIsMoving = false;
-BulletList bulletList(&playerIsMoving);
-Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
-IR ir_comm;
-Enemy allenemies(0, 0, &LCD, 0);
-Enemy enemy0(30, 35, &LCD, 0);
-Enemy enemy1(30, 35, &LCD, 1);
 /**
+ * @brief All enemy types
  * enemy0 dead
  * enemy1 main enemy
  * TODO: expand with multiple enemies
-*/
+ */
+Enemy enemy0(30, 35, &LCD, 0);
+Enemy enemy1(30, 35, &LCD, 1);
 Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
                     {enemy0, enemy0, enemy0, enemy0, enemy0},
                     {enemy0, enemy0, enemy0, enemy0, enemy0},
                     {enemy0, enemy0, enemy0, enemy0, enemy0}};
+
+BulletList bulletList(&playerIsMoving);
+Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
+IR ir_comm;
+// varibles needed for the timers
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
 
+/**
+ *  timer1 statistics
+ *  COM1x[1:0] 0b00 (pins disconected)
+ *  WGM0[3:0] = 0b0101 (mode 5: fast pwm 8-bit)
+ *  CS0[2:0] = 0b001 (no prescaler)
+ *  OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+ */
 void initTimer1(void)
 {
-  /* timer1 statistics
 
-         COM1x[1:0] 0b00 (pins disconected)
-         WGM0[3:0] = 0b0101 (mode 5: fast pwm 8-bit)
-         CS0[2:0] = 0b001 (no prescaler)
-
-       OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
-     */
   TCCR1B |= (1 << WGM12) | (1 << CS12);
-  TCNT1 = 0;                              // reset timer
+  TCNT1 = 0; // reset timer
   OCR1A = 2082;
   TIMSK1 |= (1 << OCIE1A);
 }
 
+/**
+ *  timer2 statistics
+ *  COM2x[1:0] 0b00 (pins disconected)
+ *  WGM2[2:0] = 0b010 (mode 2: fast pwm 8-bit)
+ *  CS2[2:0] = 0b001 (no prescaler)
+ *  OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+ */
 void initTimer2(void)
 {
-  /* timer2 statistics
 
-         COM2x[1:0] 0b00 (pins disconected)
-         WGM2[2:0] = 0b010 (mode 2: fast pwm 8-bit)
-         CS2[2:0] = 0b001 (no prescaler)
-
-       OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
-     */
   TCCR2A |= (1 << WGM20) | (1 << WGM21);
   TCCR2B |= (1 << CS20);
   TCNT2 = 0;                              // reset timer
@@ -109,12 +112,13 @@ ISR(TIMER2_OVF_vect)
   PORTD |= (1 << PORTD5);
 }
 
-ISR(TIMER1_COMPA_vect){
-bulletList.updateBullets();
+ISR(TIMER1_COMPA_vect)
+{
+  bulletList.updateBullets();
   counteronesec++;
-  if (counteronesec == 120) //TODO: remove magic number (could be made dynamic to increase difficulty)
+  if (counteronesec == 120) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
-    allenemies.moveEnemy(enemies, timemovement, enemy0);
+    Enemy::moveEnemy(enemies, timemovement, enemy0);
     timemovement++;
     if (timemovement == 5)
     {
@@ -123,7 +127,6 @@ bulletList.updateBullets();
     counteronesec = 0;
   }
 }
-
 
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
@@ -141,13 +144,14 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
-  for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
-  {
-    for (uint8_t i = 0; i < 5; i++)
-    {
-      enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
-    }
-  }
+  //! This seems unnessesary
+  // for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
+  // {
+  //   for (uint8_t i = 0; i < 5; i++)
+  //   {
+  //     enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+  //   }
+  // }
   player.drawPlayer();
   nunchukController.initialize();
   ir_comm.IR_innit();
@@ -164,7 +168,6 @@ ISR(TIMER0_COMPA_vect)
   PORTD ^= (1 << PORTD6);
 }
 
-
 /**
  * @brief Main loop
  * @note Controls the player
@@ -178,4 +181,3 @@ int main(void)
   }
   return 0;
 }
-

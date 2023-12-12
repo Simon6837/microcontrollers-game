@@ -18,6 +18,7 @@ void BulletList::addBullet(Bullet *bullet)
 }
 /**
  * @brief Updates the position of all the bullets in the list
+ * also checks if a bullet has hit a enemy
  * @note Deletes bullets that have gone off the screen
  */
 void BulletList::updateBullets()
@@ -27,6 +28,10 @@ void BulletList::updateBullets()
 
     while (temp != nullptr)
     {
+
+        // Check if bullet has hit a enemy
+        
+
         if (temp->bullet->getYPosition() < SCREEN_TOP_OFFSET)
         {
             if (prev == nullptr)
