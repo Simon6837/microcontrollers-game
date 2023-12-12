@@ -16,7 +16,6 @@
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFT
 
-const long fivesecondcount = 190000; // one second is 38000 (timer0 runs at 38khz)
 // setup needed objects
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
@@ -27,12 +26,17 @@ IR ir_comm;
 Enemy allenemies(0, 0, &LCD, 0);
 Enemy enemy0(30, 35, &LCD, 0);
 Enemy enemy1(30, 35, &LCD, 1);
+/**
+ * enemy0 dead
+ * enemy1 main enemy
+ * TODO: expand with multiple enemies
+*/
 Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
                     {enemy0, enemy0, enemy0, enemy0, enemy0},
                     {enemy0, enemy0, enemy0, enemy0, enemy0},
                     {enemy0, enemy0, enemy0, enemy0, enemy0}};
-const uint16_t counterUpdateBulletsThreshold = 1267;
-volatile uint16_t counterUpdateBullets = 0;
+uint8_t counteronesec = 0;
+uint8_t timemovement = 0;
 
 void initTimer1(void)
 {
@@ -107,10 +111,20 @@ ISR(TIMER2_OVF_vect)
 
 ISR(TIMER1_COMPA_vect){
 bulletList.updateBullets();
+  counteronesec++;
+  if (counteronesec == 120) //TODO: remove magic number (could be made dynamic to increase difficulty)
+  {
+    allenemies.moveEnemy(enemies, timemovement, enemy0);
+    timemovement++;
+    if (timemovement == 5)
+    {
+      timemovement = 0;
+    }
+    counteronesec = 0;
+  }
 }
 
-long counteronesec = 0;
-uint8_t timemovement = 0;
+
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
  * Also initializes the timers and the ADC.
@@ -148,17 +162,6 @@ void setup()
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
-  // counteronesec++;
-  // if (counteronesec == fivesecondcount)
-  // {
-  //   allenemies.moveEnemy(enemies, timemovement, enemy0);
-  //   timemovement++;
-  //   if (timemovement == 5)
-  //   {
-  //     timemovement = 0;
-  //   }
-  //   counteronesec = 0;
-  // }
 }
 
 
