@@ -10,20 +10,33 @@
 #include "classes/IR.h"
 #include "classes/Player.h"
 #include "classes/BulletList.h"
+#include "classes/Enemy.h"
 #include "classes/NunchukController.h" // Include the new header
 // pins for the screen
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFT
 
-// setup needed objects and shared variables
+// setup needed objects
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 bool playerIsMoving = false;
 BulletList bulletList(&playerIsMoving);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
-const uint16_t counterUpdateBulletsThreshold = 1267;
-volatile uint16_t counterUpdateBullets = 0;
+Enemy allenemies(0, 0, &LCD, 0);
+Enemy enemy0(30, 35, &LCD, 0);
+Enemy enemy1(30, 35, &LCD, 1);
+/**
+ * enemy0 dead
+ * enemy1 main enemy
+ * TODO: expand with multiple enemies
+*/
+Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
+                    {enemy0, enemy0, enemy0, enemy0, enemy0},
+                    {enemy0, enemy0, enemy0, enemy0, enemy0},
+                    {enemy0, enemy0, enemy0, enemy0, enemy0}};
+uint8_t counteronesec = 0;
+uint8_t timemovement = 0;
 
 void initTimer1(void)
 {
@@ -35,10 +48,26 @@ void initTimer1(void)
 
        OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
      */
-  TCCR1A |= (1 << WGM10);
-  TCCR1B |= (1 << WGM12) | (1 << CS10);
+  TCCR1B |= (1 << WGM12) | (1 << CS12);
   TCNT1 = 0;                              // reset timer
-  TIMSK1 |= (1 << OCIE1A) | (1 << TOIE1); // eneable interupt on compare match A and on overFlow
+  OCR1A = 2082;
+  TIMSK1 |= (1 << OCIE1A);
+}
+
+void initTimer2(void)
+{
+  /* timer2 statistics
+
+         COM2x[1:0] 0b00 (pins disconected)
+         WGM2[2:0] = 0b010 (mode 2: fast pwm 8-bit)
+         CS2[2:0] = 0b001 (no prescaler)
+
+       OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+     */
+  TCCR2A |= (1 << WGM20) | (1 << WGM21);
+  TCCR2B |= (1 << CS20);
+  TCNT2 = 0;                              // reset timer
+  TIMSK2 |= (1 << OCIE2A) | (1 << TOIE2); // enable interrupt on compare match A and on overflow
 }
 
 void initADC(void)
@@ -67,18 +96,34 @@ ISR(ADC_vect)
   { // limit the brightness to prevent flickering on the screen
     return;
   }
-  OCR1AL = ADCH; // set OCR1A for dutycycle
+  OCR2A = ADCH; // set OCR1A for dutycycle
 }
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER2_COMPA_vect)
 {
   PORTD &= ~(1 << PORTD5);
 }
 
-ISR(TIMER1_OVF_vect)
+ISR(TIMER2_OVF_vect)
 {
   PORTD |= (1 << PORTD5);
 }
+
+ISR(TIMER1_COMPA_vect){
+bulletList.updateBullets();
+  counteronesec++;
+  if (counteronesec == 120) //TODO: remove magic number (could be made dynamic to increase difficulty)
+  {
+    allenemies.moveEnemy(enemies, timemovement, enemy0);
+    timemovement++;
+    if (timemovement == 5)
+    {
+      timemovement = 0;
+    }
+    counteronesec = 0;
+  }
+}
+
 
 /**
  * @brief Sets up the screen and the player than connects to the Nunchuk
@@ -87,14 +132,22 @@ ISR(TIMER1_OVF_vect)
 void setup()
 {
   sei();
+  initTimer2();
   initTimer1();
   initADC();
   initPotpins();
+  Wire.begin();
   Serial.begin(9600);
   LCD.begin();
-  Wire.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
+  for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
+  {
+    for (uint8_t i = 0; i < 5; i++)
+    {
+      enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+    }
+  }
   player.drawPlayer();
   nunchukController.initialize();
   ir_comm.IR_innit();
@@ -109,13 +162,8 @@ void setup()
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
-  counterUpdateBullets++;
-  if (counterUpdateBullets == counterUpdateBulletsThreshold)
-  {
-    bulletList.updateBullets();
-    counterUpdateBullets = 0;
-  }
 }
+
 
 /**
  * @brief Main loop
@@ -130,3 +178,4 @@ int main(void)
   }
   return 0;
 }
+
