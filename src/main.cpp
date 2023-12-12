@@ -125,23 +125,23 @@ void setup()
 ISR(TIMER0_COMPA_vect)
 {
   PORTD ^= (1 << PORTD6);
-  // counteronesec++;
+  counteronesec++;
 counterUpdateBullets++;
   if (counterUpdateBullets == counterUpdateBulletsThreshold)
   {
     bulletList.updateBullets();
     counterUpdateBullets = 0;
   }
-  // if (counteronesec == fivesecondcount)
-  // {
-  //   allenemies.moveEnemy(enemies, timemovement, enemy0);
-  //   timemovement++;
-  //   if (timemovement == 5)
-  //   {
-  //     timemovement = 0;
-  //   }
-  //   counteronesec = 0;
-  // }
+  if (counteronesec == fivesecondcount)
+  {
+    allenemies.moveEnemy(enemies, timemovement, enemy0);
+    timemovement++;
+    if (timemovement == 5)
+    {
+      timemovement = 0;
+    }
+    counteronesec = 0;
+  }
 }
 
 
