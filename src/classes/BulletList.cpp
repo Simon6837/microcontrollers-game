@@ -1,10 +1,11 @@
 // BulletList.cpp
 #include "BulletList.h"
 #define SCREEN_TOP_OFFSET 10 // the offset from the top of the screen for deleting bullets
-BulletList::BulletList(bool *playerIsMovingValue)
+BulletList::BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5])
 {
     playerIsMoving = playerIsMovingValue;
     head = nullptr;
+    enemies = enemiesArray;
 }
 /**
  * @brief Adds a bullet to the list
@@ -25,13 +26,37 @@ void BulletList::updateBullets()
 {
     Node *temp = head;
     Node *prev = nullptr;
-
+    // Loop through all the bullets
     while (temp != nullptr)
     {
-
         // Check if bullet has hit a enemy
-        
+        for (uint8_t j = 0; j < 4; j++)
+        {
+            for (uint8_t i = 0; i < 5; i++)
+            {
+                // Serial.println(enemies[j][i].getXPosition());
+                // Serial.println(enemies[j][i].getYPosition());
+                // Serial.println(temp->bullet->getXPosition());
+                // Serial.println(temp->bullet->getYPosition());
+                // Serial.println(" ");
 
+                if (temp->bullet->getXPosition() > enemies[j][i].getXPosition() - 15 &&
+                    temp->bullet->getXPosition() < enemies[j][i].getXPosition() + 15 &&
+                    temp->bullet->getYPosition() > enemies[j][i].getYPosition() - 15 &&
+                    temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 15)
+                {
+                    if (enemies[j][i].getType() == 1)
+                    {
+                        enemies[j][i].setType(0);
+                        delete temp->bullet;
+                        delete temp;
+                        temp = (prev == nullptr) ? head : prev->next;
+                        continue;
+                    }
+                }
+            }
+        }
+        // Check if bullet has gone off the screen
         if (temp->bullet->getYPosition() < SCREEN_TOP_OFFSET)
         {
             if (prev == nullptr)
@@ -44,6 +69,7 @@ void BulletList::updateBullets()
 
             continue;
         }
+        // Update bullet position
         else
         {
             uint8_t speed = 0;

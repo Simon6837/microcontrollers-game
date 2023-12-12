@@ -57,3 +57,13 @@ static void Enemy::moveEnemy(Enemy enemies[4][5], uint8_t timemovement, Enemy en
         }
     }
 }
+
+uint8_t Enemy::getXPosition()
+{
+    return x;
+}
+
+uint16_t Enemy::getYPosition()
+{
+    return y;
+}

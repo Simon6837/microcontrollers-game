@@ -34,7 +34,7 @@ Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
                     {enemy0, enemy0, enemy0, enemy0, enemy0},
                     {enemy0, enemy0, enemy0, enemy0, enemy0}};
 
-BulletList bulletList(&playerIsMoving);
+BulletList bulletList(&playerIsMoving, enemies);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
 // varibles needed for the timers
