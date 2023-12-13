@@ -40,19 +40,24 @@ void BulletList::updateBullets()
                 // Serial.println(temp->bullet->getYPosition());
                 // Serial.println(" ");
 
-                if (temp->bullet->getXPosition() > enemies[j][i].getXPosition() - 15 &&
-                    temp->bullet->getXPosition() < enemies[j][i].getXPosition() + 15 &&
-                    temp->bullet->getYPosition() > enemies[j][i].getYPosition() - 15 &&
-                    temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 15)
+                if (temp->bullet->getXPosition() > enemies[j][i].getXPosition() &&
+                    temp->bullet->getXPosition() < enemies[j][i].getXPosition() + 30 &&
+                    temp->bullet->getYPosition() > enemies[j][i].getYPosition() &&
+                    temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 30)
                 {
-                    // if (enemies[j][i].getType() == 1)
-                    // {
-                    //     enemies[j][i].setType(0);
-                    //     delete temp->bullet;
-                    //     delete temp;
-                    //     temp = (prev == nullptr) ? head : prev->next;
-                    //     continue;
-                    // }
+                    if (enemies[j][i].getType() == 1)
+                    {
+                        enemies[j][i].setType(0);
+                        enemies[j][i].drawEnemy();
+                        if (prev == nullptr)
+                            head = temp->next;
+                        else prev->next = temp->next;
+                        delete temp->bullet;
+                        delete temp;
+                        temp = (prev == nullptr) ? head : prev->next;
+
+                        return;
+                    }
                 }
             }
         }

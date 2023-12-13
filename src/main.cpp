@@ -21,21 +21,13 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
-/**
- * @brief All enemy types
- * enemy0 dead
- * enemy1 main enemy
- * TODO: expand with multiple enemies
- */
-// Enemy enemy0(30, 35, &LCD, 0);
-// Enemy enemy1(30, 35, &LCD, 1);
+//enemies array
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}
 };
-
 BulletList bulletList(&playerIsMoving, enemies);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
@@ -118,7 +110,7 @@ ISR(TIMER1_COMPA_vect)
 {
   bulletList.updateBullets();
   counteronesec++;
-  if (counteronesec == 120) // TODO: remove magic number (could be made dynamic to increase difficulty)
+  if (counteronesec == 30) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
     Enemy::moveEnemy(enemies, timemovement);
     timemovement++;
