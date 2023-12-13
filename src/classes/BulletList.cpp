@@ -45,14 +45,14 @@ void BulletList::updateBullets()
                     temp->bullet->getYPosition() > enemies[j][i].getYPosition() - 15 &&
                     temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 15)
                 {
-                    if (enemies[j][i].getType() == 1)
-                    {
-                        enemies[j][i].setType(0);
-                        delete temp->bullet;
-                        delete temp;
-                        temp = (prev == nullptr) ? head : prev->next;
-                        continue;
-                    }
+                    // if (enemies[j][i].getType() == 1)
+                    // {
+                    //     enemies[j][i].setType(0);
+                    //     delete temp->bullet;
+                    //     delete temp;
+                    //     temp = (prev == nullptr) ? head : prev->next;
+                    //     continue;
+                    // }
                 }
             }
         }
