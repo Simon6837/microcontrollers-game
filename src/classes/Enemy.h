@@ -16,7 +16,7 @@ public:
     void drawEnemy(uint8_t xOffset, uint16_t yOffset);
     uint8_t getXPosition();
     uint16_t getYPosition();
-    static void moveEnemy(Enemy enemies[4][5], uint8_t timemovement, Enemy enemy0);
+    static void moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement);
 };
 
 

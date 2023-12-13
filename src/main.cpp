@@ -27,12 +27,14 @@ bool playerIsMoving = false;
  * enemy1 main enemy
  * TODO: expand with multiple enemies
  */
-Enemy enemy0(30, 35, &LCD, 0);
-Enemy enemy1(30, 35, &LCD, 1);
-Enemy enemies[4][5]{{enemy1, enemy1, enemy1, enemy1, enemy1},
-                    {enemy0, enemy0, enemy0, enemy0, enemy0},
-                    {enemy0, enemy0, enemy0, enemy0, enemy0},
-                    {enemy0, enemy0, enemy0, enemy0, enemy0}};
+// Enemy enemy0(30, 35, &LCD, 0);
+// Enemy enemy1(30, 35, &LCD, 1);
+Enemy enemies[4][5] = {
+    {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}
+};
 
 BulletList bulletList(&playerIsMoving, enemies);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
@@ -118,7 +120,7 @@ ISR(TIMER1_COMPA_vect)
   counteronesec++;
   if (counteronesec == 120) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
-    Enemy::moveEnemy(enemies, timemovement, enemy0);
+    Enemy::moveEnemy(enemies, timemovement);
     timemovement++;
     if (timemovement == 5)
     {

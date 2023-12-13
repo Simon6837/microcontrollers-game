@@ -22,7 +22,7 @@ void Enemy::drawEnemy(uint8_t xOffset, uint16_t yOffset)
     }
 }
 
-static void Enemy::moveEnemy(Enemy enemies[4][5], uint8_t timemovement, Enemy enemy0)
+static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement)
 {
     {
         // Move enemies horizontally
@@ -30,7 +30,7 @@ static void Enemy::moveEnemy(Enemy enemies[4][5], uint8_t timemovement, Enemy en
         {
             for (uint8_t i = 0; i < 5; i++)
             {
-                enemies[j][i].drawEnemy((i * 40) + (4 * timemovement), (j * 50));
+                enemiesArray[j][i].drawEnemy((i * 40) + (4 * timemovement), (j * 50));
             }
         }
 
@@ -42,14 +42,14 @@ static void Enemy::moveEnemy(Enemy enemies[4][5], uint8_t timemovement, Enemy en
             {
                 for (uint8_t i = 0; i < 5; i++)
                 {
-                    enemies[j][i] = enemies[j - 1][i];
+                    enemiesArray[j][i] = enemiesArray[j - 1][i];
                 }
             }
 
             // Fill the first row with enemy0
             for (uint8_t i = 0; i < 5; i++)
             {
-                enemies[0][i] = enemy0;
+                // enemies[0][i] = enemy0;
             }
 
             // Reset timemovement
