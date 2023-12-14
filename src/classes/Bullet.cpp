@@ -1,5 +1,5 @@
 #include "Bullet.h"
-#define bulletSpeed 2
+#define bulletSpeed 5
 
 Bullet::Bullet(uint8_t initialX, uint16_t initialY, Adafruit_ILI9341 *lcd)
 {
@@ -23,10 +23,15 @@ uint16_t Bullet::getYPosition()
     return y;
 }
 
-void Bullet::moveUp()
+uint8_t Bullet::getXPosition()
+{
+    return x;
+}
+
+void Bullet::moveUp(uint8_t speed)
 {
     clearBullet();
-    y -= bulletSpeed;
+    y -= speed;
     drawBullet();
 }
 

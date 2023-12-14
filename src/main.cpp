@@ -10,69 +10,116 @@
 #include "classes/IR.h"
 #include "classes/Player.h"
 #include "classes/BulletList.h"
+#include "classes/Enemy.h"
 #include "classes/NunchukController.h" // Include the new header
 // pins for the screen
 #define TFT_CS 10 // Chip select line for TFT display
-#define TFT_DC 9 // Data/command line for TFT
-// setup needed objects
+#define TFT_DC 9  // Data/command line for TFT
+
+// setup devices
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
-BulletList bulletList;
-Player player(120, 280, 3, &LCD, &nunchukController, &bulletList);
+// varibles needed for the game
+bool playerIsMoving = false;
+//enemies array
+Enemy enemies[4][5] = {
+    {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}
+};
+BulletList bulletList(&playerIsMoving, enemies);
+Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
+// varibles needed for the timers
+uint8_t counteronesec = 0;
+uint8_t timemovement = 0;
 
+/**
+ *  timer1 statistics
+ *  COM1x[1:0] 0b00 (pins disconected)
+ *  WGM0[3:0] = 0b0101 (mode 5: fast pwm 8-bit)
+ *  CS0[2:0] = 0b001 (no prescaler)
+ *  OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+ */
 void initTimer1(void)
 {
- /* timer1 statistics
-        
-        COM1x[1:0] 0b00 (pins disconected)
-        WGM0[3:0] = 0b0101 (mode 5: fast pwm 8-bit)
-        CS0[2:0] = 0b001 (no prescaler)
 
-      OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
-    */
-   TCCR1A |= (1 << WGM10);
-   TCCR1B |= (1 << WGM12) | (1 << CS10);
-   TCNT1 = 0; //reset timer
-   TIMSK1 |= (1 << OCIE1A) | (1 << TOIE1); //eneable interupt on compare match A and on overFlow
+  TCCR1B |= (1 << WGM12) | (1 << CS12);
+  TCNT1 = 0; // reset timer
+  OCR1A = 2082;
+  TIMSK1 |= (1 << OCIE1A);
+}
 
+/**
+ *  timer2 statistics
+ *  COM2x[1:0] 0b00 (pins disconected)
+ *  WGM2[2:0] = 0b010 (mode 2: fast pwm 8-bit)
+ *  CS2[2:0] = 0b001 (no prescaler)
+ *  OCRA is used for duty cycle (PORTD5 off after COMPA_VECT, on at Overflow)
+ */
+void initTimer2(void)
+{
+
+  TCCR2A |= (1 << WGM20) | (1 << WGM21);
+  TCCR2B |= (1 << CS20);
+  TCNT2 = 0;                              // reset timer
+  TIMSK2 |= (1 << OCIE2A) | (1 << TOIE2); // enable interrupt on compare match A and on overflow
 }
 
 void initADC(void)
 {
-  ADMUX |= (1<<REFS0); // reference voltage on AVCC
-  ADMUX &= ~(1<<MUX0);
-  ADCSRB &= ~(1<<ADTS2)|(1<<ADTS1)|(1<<ADTS0); // freerunning
-  ADCSRA |= (1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0); //ADC clock prescaler /128
-  ADCSRA |= (1<<ADATE); //enable ADC auto trigger 
-  ADCSRA |= (1<<ADEN); // enable ADC
-  ADCSRA |= (1<<ADIE); // enable interrupt
-  ADCSRA |= (1<<ADSC); // first time start ADC conversion
-  ADCSRB |= (1<<ACME); // enable multiplexing'
-  ADMUX |= (1<<ADLAR); //ADC Left adjust
+  ADMUX |= (1 << REFS0); // reference voltage on AVCC
+  ADMUX &= ~(1 << MUX0);
+  ADCSRB &= ~(1 << ADTS2) | (1 << ADTS1) | (1 << ADTS0); // freerunning
+  ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);  // ADC clock prescaler /128
+  ADCSRA |= (1 << ADATE);                                // enable ADC auto trigger
+  ADCSRA |= (1 << ADEN);                                 // enable ADC
+  ADCSRA |= (1 << ADIE);                                 // enable interrupt
+  ADCSRA |= (1 << ADSC);                                 // first time start ADC conversion
+  ADCSRB |= (1 << ACME);                                 // enable multiplexing'
+  ADMUX |= (1 << ADLAR);                                 // ADC Left adjust
 }
 
 void initPotpins()
 {
-  DDRD |= (1<<DDD5) | (1 << DDD4) | (1 << DDD3);
-  PORTD |= (1<<PORTD5);
+  DDRD |= (1 << DDD5) | (1 << DDD4) | (1 << DDD3);
+  PORTD |= (1 << PORTD5);
 }
 
 ISR(ADC_vect)
 {
-  if (ADCH <= 10){ // limit the brightness to prevent flickering on the screen
+  if (ADCH <= 10)
+  { // limit the brightness to prevent flickering on the screen
     return;
   }
-  OCR1AL = ADCH;  //set OCR1A for dutycycle
+  OCR2A = ADCH; // set OCR1A for dutycycle
 }
 
-ISR(TIMER1_COMPA_vect)
+ISR(TIMER2_COMPA_vect)
 {
   PORTD &= ~(1 << PORTD5);
 }
 
-ISR(TIMER1_OVF_vect){
+ISR(TIMER2_OVF_vect)
+{
   PORTD |= (1 << PORTD5);
+}
+
+ISR(TIMER1_COMPA_vect)
+{
+  bulletList.updateBullets();
+  counteronesec++;
+  if (counteronesec == 30) // TODO: remove magic number (could be made dynamic to increase difficulty)
+  {
+    Enemy::moveEnemy(enemies, timemovement);
+    timemovement++;
+    if (timemovement == 5)
+    {
+      timemovement = 0;
+    }
+    counteronesec = 0;
+  }
 }
 
 /**
@@ -82,14 +129,23 @@ ISR(TIMER1_OVF_vect){
 void setup()
 {
   sei();
+  initTimer2();
   initTimer1();
   initADC();
   initPotpins();
+  Wire.begin();
   Serial.begin(9600);
   LCD.begin();
-  Wire.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
+  //! This seems unnessesary
+  // for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
+  // {
+  //   for (uint8_t i = 0; i < 5; i++)
+  //   {
+  //     enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+  //   }
+  // }
   player.drawPlayer();
   nunchukController.initialize();
   ir_comm.IR_innit();
@@ -100,13 +156,16 @@ ISR (TIMER0_COMPA_vect){
 
 }
 
+/**
+ * @brief Main loop
+ * @note Controls the player
+ */
 int main(void)
 {
   setup();
   while (1)
   {
     player.controlPlayer();
-    bulletList.updateBullets();
   }
   return 0;
 }

@@ -1,6 +1,6 @@
 #include "NunchukController.h"
-#include <Wire.h>
-#include <HardwareSerial.h>
+// #include <Wire.h>
+
 
 #define NUNCHUK_ADDRESS 0x52
 #define BAUDRATE 9600
@@ -9,15 +9,15 @@ NunchukController::NunchukController() {}
 
 void NunchukController::initialize()
 {
-  Wire.begin();
-  Serial.begin(BAUDRATE);
-  Serial.print("Connecting to nunchuk at address 0x");
-  Serial.println(NUNCHUK_ADDRESS, HEX);
-  if (!nunchuk.begin(NUNCHUK_ADDRESS))
-  {
-    Serial.println("No nunchuk found");
-    Serial.flush();
-  }
+  // Wire.begin();
+  // Serial.begin(BAUDRATE);
+  // Serial.print("Connecting to nunchuk at address 0x");
+  // Serial.println(NUNCHUK_ADDRESS, HEX);
+  // if (!nunchuk.begin(NUNCHUK_ADDRESS))
+  // {
+  //   Serial.println("No nunchuk found");
+  //   Serial.flush();
+  // }
 }
 
 /**
