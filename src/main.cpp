@@ -14,7 +14,7 @@
 #include "classes/NunchukController.h" // Include the new header
 // pins for the screen
 #define TFT_CS 10 // Chip select line for TFT display
-#define TFT_DC 9  // Data/command line for TFT
+#define TFT_DC 9  // Data/command line for TFTú
 
 // setup devices
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
@@ -23,7 +23,7 @@ NunchukController nunchukController;
 bool playerIsMoving = false;
 // enemies array
 Enemy enemies[4][5] = {
-    {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
+    {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 2), Enemy(30, 35, &LCD, 3), Enemy(30, 35, &LCD, 4), Enemy(30, 35, &LCD, 1)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}};
