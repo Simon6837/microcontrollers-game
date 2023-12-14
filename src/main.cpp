@@ -24,9 +24,9 @@ bool playerIsMoving = false;
 //enemies array
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
-    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
-    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
-    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}
 };
 BulletList bulletList(&playerIsMoving, enemies);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
@@ -140,14 +140,6 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
-  //! This seems unnessesary
-  // for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
-  // {
-  //   for (uint8_t i = 0; i < 5; i++)
-  //   {
-  //     enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
-  //   }
-  // }
   player.drawPlayer();
   nunchukController.initialize();
   ir_comm.IR_innit();
