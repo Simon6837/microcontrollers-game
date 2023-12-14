@@ -34,6 +34,8 @@ IR ir_comm;
 // varibles needed for the timers
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
+//how many times the enemies move before they go down
+const uint8_t maxTimeMovement = 8;
 
 /**
  *  timer1 statistics
@@ -110,11 +112,11 @@ ISR(TIMER1_COMPA_vect)
 {
   bulletList.updateBullets();
   counteronesec++;
-  if (counteronesec == 30) // TODO: remove magic number (could be made dynamic to increase difficulty)
+  if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
-    Enemy::moveEnemy(enemies, timemovement);
+    Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
-    if (timemovement == 5)
+    if (timemovement == maxTimeMovement)
     {
       timemovement = 0;
     }
