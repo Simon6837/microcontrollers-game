@@ -23,6 +23,11 @@ uint16_t Bullet::getYPosition()
     return y;
 }
 
+uint8_t Bullet::getXPosition()
+{
+    return x;
+}
+
 void Bullet::moveUp(uint8_t speed)
 {
     clearBullet();
