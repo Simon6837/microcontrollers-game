@@ -51,19 +51,19 @@ void Enemy::drawEnemy()
         return;
     }
     //old draw function(boxes)
-    LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_RED);
+    // LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_RED);
     //new draw function
-    // for (int drawY = 0; drawY < ENEMY_HEIGHT; ++drawY)
-    // {
-    //     for (int drawX = 0; drawX < ENEMY_WIDTH; ++drawX)
-    //     {
-    //         // Draw pixel using the color value in the array
-    //         // TODO: Remove turning off the interupt and just turn off the timer
-    //         cli();
-    //         LCD->drawPixel(((x - 15) + xOffset + drawX), (y - 15 + yOffset + drawY), pgm_read_word(&enemyArt[1][drawY][drawX]));
-    //         sei();
-    //     }
-    // }
+    for (int drawY = 0; drawY < ENEMY_HEIGHT; ++drawY)
+    {
+        for (int drawX = 0; drawX < ENEMY_WIDTH; ++drawX)
+        {
+            // Draw pixel using the color value in the array
+            // TODO: Remove turning off the interupt and just turn off the timer
+            cli();
+            LCD->drawPixel(((x - 15) + xOffset + drawX), (y - 15 + yOffset + drawY), pgm_read_word(&enemyArt[type - 1][drawY][drawX]));
+            sei();
+        }
+    }
 
     // clear next to the player
     LCD->fillRect((x - 19) + xOffset, (y - 15) + yOffset, 4, 30, ILI9341_BLACK);
