@@ -34,18 +34,12 @@ void BulletList::updateBullets()
         {
             for (uint8_t i = 0; i < 5; i++)
             {
-                // Serial.println(enemies[j][i].getXPosition());
-                // Serial.println(enemies[j][i].getYPosition());
-                // Serial.println(temp->bullet->getXPosition());
-                // Serial.println(temp->bullet->getYPosition());
-                // Serial.println(" ");
-
                 if (temp->bullet->getXPosition() > enemies[j][i].getXPosition() &&
                     temp->bullet->getXPosition() < enemies[j][i].getXPosition() + 30 &&
                     temp->bullet->getYPosition() > enemies[j][i].getYPosition() &&
                     temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 30)
                 {
-                    if (enemies[j][i].getType() == 1)
+                    if (enemies[j][i].getType() != 0)
                     {
                         enemies[j][i].setType(0);
                         enemies[j][i].drawEnemy();
