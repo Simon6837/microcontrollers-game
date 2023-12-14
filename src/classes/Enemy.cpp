@@ -23,17 +23,21 @@ void Enemy::drawEnemy()
         LCD->fillRect((x - 19) + xOffset, (y - 15) + yOffset, 4, 30, ILI9341_BLACK);
     }
 }
-
+/**
+ * @brief Clears the screen where the enemies are, this is used when the enemies move to the next row
+ * We do this because the enemies leave some pixels behind when they move a row down
+ * TODO: find a better solition for this, the current method causes a little lagspike
+ */
 void Enemy::moveRowFix()
 {
     LCD->fillRect(0, 0, 230, 230, ILI9341_BLACK);
 }
 
-static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement)
+static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uint8_t maxTimeMovement)
 {
     {
         // Check if enemies can't move horizontally anymore
-        if (timemovement == 4)
+        if (timemovement == (maxTimeMovement - 1))
         {
             // Move enemies to the next row
             enemiesArray[0][0].moveRowFix();
@@ -41,10 +45,16 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement)
             {
                 for (uint8_t i = 0; i < 5; i++)
                 {
-                    enemiesArray[j][i] = enemiesArray[j - 1][i];
+                    //copy row above
+                    enemiesArray[j][i].setType(enemiesArray[j - 1][i].getType());
                 }
             }
-
+              for (uint8_t i = 0; i < 5; i++)
+                {
+                    //set type of new row
+                    //TODO: make this random
+                    enemiesArray[0][i].setType(1);
+                }
             // Reset timemovement
             timemovement = 0;
         }

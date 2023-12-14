@@ -19,7 +19,7 @@ public:
     void moveRowFix();
     uint8_t getXPosition();
     uint16_t getYPosition();
-    static void moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement);
+    static void moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uint8_t maxTimeMovement);
     uint8_t getType();
     void setType(uint8_t newType);
     void setXOffset(uint8_t newXOffset);
