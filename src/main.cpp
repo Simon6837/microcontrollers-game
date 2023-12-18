@@ -21,21 +21,35 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
-//enemies array
+// enemies array
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 1)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)},
-    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}
-};
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 8), Enemy(30, 35, &LCD, 0)}};
 BulletList bulletList(&playerIsMoving, enemies);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
 // varibles needed for the timers
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
-//how many times the enemies move before they go down
+// how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
+// variables used for ir
+const uint8_t T = 50;           // T is the amount of pulses we want per block
+const uint8_t Block = 2 * T;    // Block is the amount of times we need an interupt
+const uint8_t LeaderLength = 6; // LeaderLength is the amount of blocks the leader is transmitted
+const uint8_t BitLength = 2;    // Bitlength is the amount of blocks that represents a bit
+const uint8_t ParityLength = 4; // Paritylength is the amount of blocks that represent the parity bit
+const uint8_t pvpbitlength = 2; // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
+const uint8_t bit1 = 0b00000001;      // bitmask for bit 0
+const uint8_t bit2 = 0b00000010;      // bitmask for bit 1
+uint8_t t = 0;                  // t is the amount of interrupts that have passed
+uint8_t blockcount = 0;         // blockcount is the amount of blocks that have been send
+uint8_t sending = 0;            // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
+uint8_t bitsendcount = 0;       // which bit of the data is being send
+uint8_t data = 0b00000011;      // data is the data that needs to be send over
+bool parityeven = false;        // used for paritybit
 
 /**
  *  timer1 statistics
@@ -110,6 +124,11 @@ ISR(TIMER2_OVF_vect)
 
 ISR(TIMER1_COMPA_vect)
 {
+  sei();
+  if (data)
+  {
+    ir_comm.StartComm();
+  }
   bulletList.updateBullets();
   counteronesec++;
   if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
@@ -154,7 +173,73 @@ void setup()
   player.displayLives();
 }
 
-ISR (TIMER0_COMPA_vect){
+ISR(TIMER0_COMPA_vect){
+// Leader phase
+if (sending == 0 && blockcount < (2 * (LeaderLength / 3))) {
+    TCCR0A |= (1 << COM0A0);
+} else if (sending == 0 && blockcount >= (2 * (LeaderLength / 3)) && blockcount < LeaderLength) {
+    TCCR0A &= ~(1 << COM0A0);
+} else if (sending == 0 && blockcount > LeaderLength) {
+    blockcount = 0;
+    sending++;
+}
+
+// Start bit phase
+else if (sending == 1 && blockcount == 0) {
+    TCCR0A |= (1 << COM0A0);
+} else if (sending == 1 && blockcount == 1) {
+    TCCR0A &= ~(1 << COM0A0);
+} else if (sending == 1 && blockcount > BitLength) {
+    sending++;
+    blockcount = 0;
+}
+
+// Data bit phase
+else if (sending == 2 && blockcount == 0) {
+    // First block for data bit 0
+    if (data & (1 << bitsendcount)) {
+        TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for bit 1
+    } else {
+        TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for bit 0
+    }
+} else if (sending == 2 && blockcount == 1) {
+    // Second block for data bit 0 (1 block low)
+    TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit
+} else if (sending == 2 && blockcount > BitLength && bitsendcount < pvpbitlength) {
+    // Move to the next data bit
+    bitsendcount++;
+    blockcount = 0;
+} else if (bitsendcount >= pvpbitlength) {
+    // Move to the next phase after all data bits are transmitted
+    sending++;
+    blockcount = 0;
+}
+
+
+// Parity bit phase
+else if (sending == 3) {
+    if (blockcount < 2) {
+        // First block for parity
+        if (parityeven) {
+            TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for even parity
+        } else {
+            TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for odd parity
+        }
+    } else if (blockcount < 4) {
+        // Second block for parity (repeat the same modulation)
+        if (parityeven) {
+            TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for even parity
+        } else {
+            TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for odd parity
+        }
+    } else if (blockcount >= ParityLength) {
+        // Transition to the next phase or reset counters
+        sending = 0;
+        blockcount = 0;
+    }
+}
+
+
 
 }
 
@@ -168,6 +253,12 @@ int main(void)
   while (1)
   {
     player.controlPlayer();
+if (data & bit1 && data & bit2) {
+    parityeven = true;  // Even parity
+} else {
+    parityeven = false; // Odd parity
+}
+
   }
   return 0;
 }

@@ -6,8 +6,12 @@ class IR
 public:
 IR();
 void IR_innit();
-void Timer0_switchOnOff();
+void StartComm();
+
+private:
 void Timer0_innit();
+void timerStart();
+void timerStop();
 
 };
 
