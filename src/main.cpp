@@ -173,74 +173,87 @@ void setup()
   player.displayLives();
 }
 
-ISR(TIMER0_COMPA_vect){
-// Leader phase
-if (sending == 0 && blockcount < (2 * (LeaderLength / 3))) {
+ISR(TIMER0_COMPA_vect)
+{
+  t++;
+  if (t == Block)
+  {
+    t = 0;
+    blockcount++;
+  }
+  if (sending == 0 && blockcount < (2 * (LeaderLength / 3)))
+  {
     TCCR0A |= (1 << COM0A0);
-} else if (sending == 0 && blockcount >= (2 * (LeaderLength / 3)) && blockcount < LeaderLength) {
+  }
+  else if (sending == 0 && blockcount >= (2 * (LeaderLength / 3)) && blockcount < LeaderLength)
+  {
     TCCR0A &= ~(1 << COM0A0);
-} else if (sending == 0 && blockcount > LeaderLength) {
+  }
+  else if (sending == 0 && blockcount > LeaderLength)
+  {
     blockcount = 0;
     sending++;
-}
-
-// Start bit phase
-else if (sending == 1 && blockcount == 0) {
+  }
+  else if (sending == 1 && blockcount == 0)
+  {
     TCCR0A |= (1 << COM0A0);
-} else if (sending == 1 && blockcount == 1) {
+  }
+  else if (sending == 1 && blockcount == 1)
+  {
     TCCR0A &= ~(1 << COM0A0);
-} else if (sending == 1 && blockcount > BitLength) {
+  }
+  else if (sending == 1 && blockcount > BitLength)
+  {
     sending++;
     blockcount = 0;
-}
-
-// Data bit phase
-else if (sending == 2 && blockcount == 0) {
-    // First block for data bit 0
-    if (data & (1 << bitsendcount)) {
-        TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for bit 1
-    } else {
-        TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for bit 0
+  }
+  else if (sending == 2 && blockcount == 0)
+  {
+    if (data & (1 << bitsendcount))
+    {
+      TCCR0A |= (1 << COM0A0);
     }
-} else if (sending == 2 && blockcount == 1) {
-    // Second block for data bit 0 (1 block low)
-    TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit
-} else if (sending == 2 && blockcount > BitLength && bitsendcount < pvpbitlength) {
-    // Move to the next data bit
+    else
+    {
+      TCCR0A &= ~(1 << COM0A0);
+    }
+  }
+  else if (sending == 2 && blockcount == 1)
+  {
+    if (data & (1 << bitsendcount))
+    {
+      TCCR0A &= ~(1 << COM0A0);
+    }
+    else
+    {
+      TCCR0A |= (1 << COM0A0);
+    }
+  }
+    else if (sending == 2 && blockcount > BitLength && bitsendcount < pvpbitlength)
+  {
     bitsendcount++;
     blockcount = 0;
-} else if (bitsendcount >= pvpbitlength) {
-    // Move to the next phase after all data bits are transmitted
+  } else if (bitsendcount >= pvpbitlength){
     sending++;
     blockcount = 0;
-}
-
-
-// Parity bit phase
-else if (sending == 3) {
-    if (blockcount < 2) {
-        // First block for parity
-        if (parityeven) {
-            TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for even parity
-        } else {
-            TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for odd parity
-        }
-    } else if (blockcount < 4) {
-        // Second block for parity (repeat the same modulation)
-        if (parityeven) {
-            TCCR0A &= ~(1 << COM0A0); // Clear the COM0A0 bit for even parity
-        } else {
-            TCCR0A |= (1 << COM0A0);  // Set the COM0A0 bit for odd parity
-        }
-    } else if (blockcount >= ParityLength) {
-        // Transition to the next phase or reset counters
-        sending = 0;
-        blockcount = 0;
+  }
+  else if (sending == 3 && blockcount < 2){
+    if (parityeven){
+      TCCR0A |= (1 << COM0A0);
+    } else {
+      TCCR0A &= ~(1 << COM0A0);
     }
-}
-
-
-
+  }
+    else if (sending == 3 && blockcount < 4){
+    if (parityeven){
+      TCCR0A &= ~(1 << COM0A0);
+    } else {
+      TCCR0A |= (1 << COM0A0);
+    }
+  } else if (sending == 3 && blockcount >= ParityLength){
+    sending = 0;
+    blockcount = 0;
+  }
 }
 
 /**
