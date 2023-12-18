@@ -9,7 +9,7 @@
 // can't move past these edges, so the player doesn't go off the screen
 // based on the size of the player and the size of the screen
 #define LEFT_EDGE 10
-#define RIGHT_EDGE 220
+#define RIGHT_EDGE 230
 
 // values to draw the player
 #define PLAYER_HEIGHT 23
