@@ -141,9 +141,6 @@ void Enemy::drawEnemy()
         LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_BLACK);
         return;
     }
-    // old draw function(boxes)
-    //  LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_RED);
-    // new draw function
     for (int drawY = 0; drawY < ENEMY_HEIGHT; ++drawY)
     {
         for (int drawX = 0; drawX < ENEMY_WIDTH; ++drawX)
@@ -189,7 +186,9 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
             {
                 // set type of new row
                 // TODO: make this random
-                enemiesArray[0][i].setType(1);
+                //generate a random number between 1 and 4
+                uint8_t random = rand() % ENEMY_TYPES + 1;
+                enemiesArray[0][i].setType(random);
             }
             // Reset timemovement
             timemovement = 0;

@@ -21,7 +21,7 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
-// enemies array
+// enemies array, initialized here to prevent stack overflow
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 2), Enemy(30, 35, &LCD, 3), Enemy(30, 35, &LCD, 4), Enemy(30, 35, &LCD, 1)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
