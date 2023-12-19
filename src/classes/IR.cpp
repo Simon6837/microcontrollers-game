@@ -8,7 +8,6 @@ IR::IR(){
 void IR::IR_innit(){ //initializes the infraredcommunication
     DDRD |= (1 << DDD6);
     PORTD |= (1 << PORTD6);
-    PORTD |= (1 << PORTD2);
     Timer0_innit();
     timerStop();
 }

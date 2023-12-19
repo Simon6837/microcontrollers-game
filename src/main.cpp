@@ -36,24 +36,22 @@ uint8_t timemovement = 0;
 // how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
 // variables used for ir
-volatile const uint8_t T = 50;            // T is the amount of pulses we want per block
-volatile const uint8_t Block = 2 * T;     // Block is the amount of times we need an interupt
-volatile const uint8_t LeaderLength = 5;  // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
-volatile const uint8_t BitLength = 1;     // Bitlength is the amount of blocks that represents a bit
-volatile const uint8_t ParityLength = 3;  // Paritylength is the amount of blocks that represent the parity bit
-volatile const uint8_t pvpdatalength = 2;  // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
-volatile const uint8_t bit1 = 0b01; // bitmask for bit 0
-volatile const uint8_t bit2 = 0b10; // bitmask for bit 1
-volatile uint8_t t = 0;                   // t is the amount of interrupts that have passed
-volatile uint8_t blockcount = 0;          // blockcount is the amount of blocks that have been send
-volatile uint8_t sending = 0;             // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
-volatile uint8_t bitsendcount = 0;        // which bit of the data is being send
-volatile uint8_t senddata = 0b11;       // data is the data that needs to be send over
-volatile uint8_t datatosend = 0b00; // data that is being send
-volatile bool parityeven = false;         // used for paritybit
+const uint8_t T = 50;               // T is the amount of pulses we want per block
+const uint8_t Block = 2 * T;        // Block is the amount of times we need an interupt
+const uint8_t LeaderLength = 5;     // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
+const uint8_t BitLength = 1;        // Bitlength is the amount of blocks that represents a bit
+const uint8_t ParityLength = 3;     // Paritylength is the amount of blocks that represent the parity bit
+const uint8_t pvpdatalength = 2;    // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
+const uint8_t bit1 = 0b01;          // bitmask for bit 0
+const uint8_t bit2 = 0b10;          // bitmask for bit 1
+volatile uint8_t t = 0;             // t is the amount of interrupts that have passed
+volatile uint8_t blockcount = 0;    // blockcount is the amount of blocks that have been send
+volatile uint8_t sending = 0;       // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
+volatile uint8_t bitsendcount = 0;  // which bit of the data is being send
+volatile uint8_t senddata = 0b00000001;   // data is the data that needs to be send over
+uint8_t datatosend = 0b00000000; // data that is being send
+volatile bool parityeven = false;   // used for paritybit
 volatile bool sendingdata = true;
-
-
 
 /**
  *  timer1 statistics
@@ -105,6 +103,20 @@ void initPotpins()
 {
   DDRD |= (1 << DDD5) | (1 << DDD4) | (1 << DDD3);
   PORTD |= (1 << PORTD5);
+}
+
+bool calculateParity(uint8_t data)
+{
+    int count = 0;
+    for (int i = 0; i < 8; i++)
+    {
+          // Serial.println(data & (1 << i));
+        if ((data & (1 << i)) != 0)
+        {
+            count++;
+        }
+    }
+    return (count % 2 == 0); // Even parity
 }
 
 ISR(ADC_vect)
@@ -180,8 +192,9 @@ void setup()
 ISR(TIMER0_COMPA_vect)
 {
   t++;
-  if(sendingdata){
-    senddata = datatosend;
+  if (sendingdata)
+  {
+    datatosend = senddata;
     sendingdata = false;
     senddata = 0b00;
   }
@@ -218,8 +231,8 @@ ISR(TIMER0_COMPA_vect)
   }
   else if (sending == 2 && blockcount == 0)
   {
-    
-    if (datatosend == (1 << bitsendcount))
+
+    if ((datatosend & (1 << bitsendcount)) == 0)
     {
       TCCR0A &= ~(1 << COM0A0);
     }
@@ -230,28 +243,25 @@ ISR(TIMER0_COMPA_vect)
   }
   else if (sending == 2 && blockcount == 1)
   {
-    if (datatosend == (1 << bitsendcount))
+    if ((datatosend & (1 << bitsendcount)) == 0)
     {
       TCCR0A |= (1 << COM0A0);
     }
     else
     {
       TCCR0A &= ~(1 << COM0A0);
-
     }
   }
   else if (sending == 2 && blockcount > BitLength)
   {
     bitsendcount++;
     blockcount = 0;
-    if (bitsendcount >= pvpdatalength){
+    if (bitsendcount >= pvpdatalength)
+    {
       sending++;
       bitsendcount = 0;
-      if (__builtin_parity(datatosend)) {
-  parityeven = true; // Even parity
-} else {
-  parityeven = false; // Odd parity
-}
+      Serial.println(datatosend);
+      parityeven = calculateParity(datatosend);
     }
   }
   else if (sending == 3 && blockcount < 2)
