@@ -48,7 +48,7 @@ volatile uint8_t t = 0;             // t is the amount of interrupts that have p
 volatile uint8_t blockcount = 0;    // blockcount is the amount of blocks that have been send
 volatile uint8_t sending = 0;       // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
 volatile uint8_t bitsendcount = 0;  // which bit of the data is being send
-volatile uint8_t senddata = 0b00000001;   // data is the data that needs to be send over
+volatile uint8_t senddata = 0b00000000;   // data is the data that needs to be send over
 uint8_t datatosend = 0b00000000; // data that is being send
 volatile bool parityeven = false;   // used for paritybit
 volatile bool sendingdata = true;
@@ -141,7 +141,7 @@ ISR(TIMER2_OVF_vect)
 ISR(TIMER1_COMPA_vect)
 {
   sei();
-  if (true)
+  if (senddata)
   {
     ir_comm.StartComm();
   }
@@ -260,7 +260,6 @@ ISR(TIMER0_COMPA_vect)
     {
       sending++;
       bitsendcount = 0;
-      Serial.println(datatosend);
       parityeven = calculateParity(datatosend);
     }
   }

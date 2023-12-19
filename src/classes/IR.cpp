@@ -34,12 +34,14 @@ void IR::Timer0_innit(){ //initializes timer0 for ir communication
 }
 
 void IR::timerStart(){
-    TCCR0A |= (1 << WGM01);
+    TCCR0A |= (1 << COM0A0);
+    TIMSK0 |= (1 << OCIE0A);
     TCNT0 = 0;
 }
 
 void IR::timerStop(){
-    TCCR0A &= ~(1 << WGM01);
+    TIMSK0 &= ~(1 << OCIE0A);
+    TCCR0A &= ~(1 << COM0A0);
 }
 
 void IR::StartComm(){
