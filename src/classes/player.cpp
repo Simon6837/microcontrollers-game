@@ -149,6 +149,9 @@ void Player::controlPlayer()
 */
 void Player::displayLives()
 {
+    if (lives > 3) {
+        lives = 0;
+    }
     Wire.beginTransmission(0X21);
     Wire.write(liveDisplay[lives]); //sends hex value to 7-segment display corresponding with the amount of player lives
     Wire.endTransmission();
