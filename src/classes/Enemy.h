@@ -24,7 +24,7 @@ public:
     void setType(uint8_t newType);
     void setXOffset(uint8_t newXOffset);
     void setYOffset(uint16_t newYOffset);
-
+    static uint8_t getRandomType();
 };
 
 
