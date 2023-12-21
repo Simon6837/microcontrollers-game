@@ -1,11 +1,12 @@
 // BulletList.cpp
 #include "BulletList.h"
-#define SCREEN_TOP_OFFSET 10 // the offset from the top of the screen for deleting bullets
-BulletList::BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5])
+#define SCREEN_TOP_OFFSET 20 // the offset from the top of the screen for deleting bullets
+BulletList::BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5], Score *scoreObject)
 {
     playerIsMoving = playerIsMovingValue;
     head = nullptr;
     enemies = enemiesArray;
+    score = scoreObject;
 }
 /**
  * @brief Adds a bullet to the list
@@ -49,7 +50,8 @@ void BulletList::updateBullets()
                         delete temp->bullet;
                         delete temp;
                         temp = (prev == nullptr) ? head : prev->next;
-
+                        // increase score
+                        score->increaseScore();
                         return;
                     }
                 }
