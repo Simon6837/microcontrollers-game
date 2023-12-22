@@ -25,6 +25,7 @@ bool playerIsMoving = false;
 // current gameStates: 0 (menu), 1 (solo), 2 (game-over)
 volatile uint8_t gameState = 0;
 volatile int8_t menuState = 0;
+uint8_t rotationState = 0;
 uint8_t shouldDrawEnemy = 4;
 uint8_t drawEnemyIndex = 0;
 // enemies array, initialized here to prevent stack overflow
@@ -185,6 +186,13 @@ void showMenu()
   LCD.drawChar(100, 235, '-', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
   LCD.drawChar(112, 235, 'O', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
   LCD.drawChar(124, 235, 'P', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+
+  // Flip screen option
+  LCD.drawRect(190, 290, 50, 30, ILI9341_WHITE);
+  LCD.drawChar(195, 295, 'F', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(205, 295, 'L', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(215, 295, 'I', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(225, 295, 'P', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
 }
 
 void flickerButton()
@@ -235,23 +243,28 @@ void menuControlsEnable()
   {
     menuState = 0;
   }
-  else if (menuState > 47)
+  else if (menuState > 63)
   {
-    menuState = 47;
+    menuState = 63;
   }
-  if (nunchukController.updateMenu() == 0)
+  //prevents cursor from moving when holding Z
+  if (nunchukController.isZButtonPressed() == false)
   {
-    menuState++;
-  }
-  if (nunchukController.updateMenu() == 1)
-  {
-    menuState--;
+    if (nunchukController.updateMenu() == 0)
+    {
+      menuState++;
+    }
+    if (nunchukController.updateMenu() == 1)
+    {
+      menuState--;
+    }
   }
   if (menuState < 16)
   {
     LCD.drawRect(64, 100, 112, 40, ILI9341_YELLOW);
     LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
     LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(190, 290, 50, 30, ILI9341_WHITE);
     if (nunchukController.isZButtonPressed() == true)
     {
       startGame();
@@ -262,15 +275,43 @@ void menuControlsEnable()
     LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
     LCD.drawRect(64, 160, 112, 40, ILI9341_GREEN);
     LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(190, 290, 50, 30, ILI9341_WHITE);
   }
-  if (menuState > 31)
+  if (menuState > 31 && menuState < 48)
   {
     LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
     LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
     LCD.drawRect(64, 220, 112, 40, ILI9341_YELLOW);
+    LCD.drawRect(190, 290, 50, 30, ILI9341_WHITE);
     if (nunchukController.isZButtonPressed() == true)
     {
       flickerButton();
+    }
+  }
+  if (menuState > 47)
+  {
+    LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(190, 290, 50, 30, ILI9341_YELLOW);
+    if (nunchukController.isZButtonPressed() == true)
+    {
+      {
+        if (rotationState == false) 
+        {
+          rotationState = true;
+          LCD.setRotation(0);
+          LCD.fillScreen(ILI9341_BLACK);
+          showMenu();
+        }
+        else
+        {
+          rotationState = false;
+          LCD.setRotation(2);
+          LCD.fillScreen(ILI9341_BLACK);
+          showMenu();
+        }
+      }
     }
   }
 }
