@@ -166,6 +166,18 @@ void Enemy::moveRowFix()
     LCD->fillRect(0, 0, 230, 230, ILI9341_BLACK);
 }
 
+/**
+ * @return a random number for the enemy type
+ * When the game is in simgleplayer mode, the enemies types will be between 1 and 4
+ * When the game is in multiplayer mode, all enemy types will be used
+ * TODO: implement multiplayer mode
+*/
+static uint8_t Enemy::getRandomType()
+{
+    return rand() % ENEMY_TYPES + 1;
+}
+
+
 static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uint8_t maxTimeMovement)
 {
     {
@@ -185,10 +197,7 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
             for (uint8_t i = 0; i < 5; i++)
             {
                 // set type of new row
-                // TODO: make this random
-                //generate a random number between 1 and 4
-                uint8_t random = rand() % ENEMY_TYPES + 1;
-                enemiesArray[0][i].setType(random);
+                enemiesArray[0][i].setType(getRandomType());
             }
             // Reset timemovement
             timemovement = 0;
