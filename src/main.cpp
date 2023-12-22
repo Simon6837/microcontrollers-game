@@ -228,6 +228,7 @@ void startGame()
   player.lives = 1;
   player.displayLives();
   player.drawPlayer();
+  score.resetScore();
 }
 
 void menuControlsEnable()
@@ -348,7 +349,6 @@ void setup()
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
   showMenu();
-  score.displayScore();
   nunchukController.initialize();
   ir_comm.IR_innit();
   player.displayLives();

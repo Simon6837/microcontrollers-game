@@ -11,6 +11,13 @@ Score::Score(Adafruit_ILI9341 *lcd)
         EEPROM.write(1, 0);
     }
 }
+
+void Score::resetScore()
+{
+    score = 0;
+    displayScore();
+}
+
 /**
  * @brief Increases the score by 1 and updates the highscore if needed
  */
@@ -19,7 +26,6 @@ void Score::increaseScore()
     score += 1;
     //? mabye only update highscore on player death?
     setHighscore();
-    LCD->fillRect(0, 0, 320, 20, ILI9341_BLACK);
     displayScore();
 }
 /**
@@ -49,6 +55,7 @@ uint16_t Score::getHighscore()
  */
 void Score::displayScore()
 {
+    LCD->fillRect(0, 0, 320, 20, ILI9341_BLACK);
     LCD->setCursor(0, 0);
     LCD->setTextColor(ILI9341_WHITE);
     LCD->setTextSize(1);
