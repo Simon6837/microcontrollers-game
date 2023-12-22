@@ -30,7 +30,7 @@ Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}};
-//all required objects
+// all required objects
 Score score(&LCD);
 BulletList bulletList(&playerIsMoving, enemies, &score);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
@@ -41,6 +41,7 @@ uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
 // how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
+uint8_t currentLevel = 1;
 
 /**
  *  timer1 statistics

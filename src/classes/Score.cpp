@@ -1,6 +1,7 @@
 #include "Score.h"
 #include <EEPROM.h>
 
+extern uint8_t currentLevel;
 Score::Score(Adafruit_ILI9341 *lcd)
 {
     LCD = lcd;
@@ -53,7 +54,10 @@ void Score::displayScore()
     LCD->setTextSize(1);
     LCD->print("Score: ");
     LCD->print(score);
-    LCD->setCursor(150, 0);
+    LCD->setCursor(90, 0);
     LCD->print("Highscore: ");
     LCD->print(getHighscore());
+    LCD->setCursor(185, 0);
+    LCD->print("Level: ");
+    LCD->print(currentLevel);
 }
