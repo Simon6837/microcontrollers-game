@@ -21,6 +21,8 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
+uint8_t shouldDrawEnemy = 4;
+uint8_t drawEnemyIndex = 0;
 // enemies array, initialized here to prevent stack overflow
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 2), Enemy(30, 35, &LCD, 3), Enemy(30, 35, &LCD, 4), Enemy(30, 35, &LCD, 1)},
@@ -167,6 +169,18 @@ int main(void)
   while (1)
   {
     player.controlPlayer();
+    //! This is not a good solition to fix the player lagging, but it works for now
+    if (shouldDrawEnemy)
+    {
+
+      enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
+      drawEnemyIndex++;
+      if (drawEnemyIndex == 5)
+      {
+        drawEnemyIndex = 0;
+        shouldDrawEnemy--;
+      }
+    }
   }
   return 0;
 }

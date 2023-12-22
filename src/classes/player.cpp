@@ -88,13 +88,13 @@ void Player::clearPlayer()
         for (int drawX = 21; drawX < PLAYER_WIDTH + PLAYER_SPEED; ++drawX)
         {
             // Draw pixel using the color value in the array
-            LCD->drawPixel((x + drawX) - PLAYER_OFFSET + 2, (y + drawY), ILI9341_BLACK);
+            LCD->drawPixel((x + drawX) - PLAYER_OFFSET + PLAYER_SPEED, (y + drawY), ILI9341_BLACK);
         }
         // remove the extra pixels on the left side of the player
         for (int drawX = 0; drawX < (PLAYER_WIDTH - 21); ++drawX)
         {
             // Draw pixel using the color value in the array
-            LCD->drawPixel((x + drawX) - PLAYER_OFFSET - 2, (y + drawY), ILI9341_BLACK);
+            LCD->drawPixel((x + drawX) - PLAYER_OFFSET - PLAYER_SPEED, (y + drawY), ILI9341_BLACK);
         }
     }
 }
