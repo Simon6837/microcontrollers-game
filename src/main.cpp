@@ -22,11 +22,14 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
+// current gameStates: 0 (menu), 1 (solo), 2 (game-over)
+volatile uint8_t gameState = 0;
+volatile int8_t menuState = 0;
 uint8_t shouldDrawEnemy = 4;
 uint8_t drawEnemyIndex = 0;
 // enemies array, initialized here to prevent stack overflow
 Enemy enemies[4][5] = {
-    {Enemy(30, 35, &LCD, 1), Enemy(30, 35, &LCD, 2), Enemy(30, 35, &LCD, 3), Enemy(30, 35, &LCD, 4), Enemy(30, 35, &LCD, 1)},
+    {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}};
@@ -39,6 +42,7 @@ IR ir_comm;
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
+volatile uint8_t trespassCheck;
 // how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
 
@@ -117,6 +121,14 @@ ISR(TIMER1_COMPA_vect)
 {
   bulletList.updateBullets();
   counteronesec++;
+  //
+  if (counteronesec == 44)
+  {
+    if (timemovement == (maxTimeMovement - 1))
+    {
+      trespassCheck = 1;
+    }
+  }
   if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
@@ -127,6 +139,194 @@ ISR(TIMER1_COMPA_vect)
     }
     redrawEnemy = true;
     counteronesec = 0;
+  }
+}
+
+void showMenu()
+{
+  gameState = 0;
+  LCD.fillScreen(ILI9341_BLACK);
+  // stop timer 1
+  TIMSK1 &= ~(1 << OCIE1A);
+  // title
+  LCD.drawChar(40, 40, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(52, 40, 'P', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(64, 40, 'A', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(76, 40, 'C', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(88, 40, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(120, 40, 'D', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(132, 40, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(144, 40, 'F', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(156, 40, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(168, 40, 'N', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(180, 40, 'D', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(192, 40, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(204, 40, 'R', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  // Single player option
+  LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
+  LCD.drawChar(76, 115, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(88, 115, 'I', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(100, 115, 'N', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(112, 115, 'G', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(124, 115, 'L', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(136, 115, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  // Versus option
+  LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
+  LCD.drawChar(76, 175, 'V', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(88, 175, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(100, 175, 'R', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(112, 175, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(124, 175, 'U', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(136, 175, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  // Coop option
+  LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+  LCD.drawChar(76, 235, 'C', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(88, 235, 'O', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(100, 235, '-', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(112, 235, 'O', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+  LCD.drawChar(124, 235, 'P', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+}
+
+void flickerButton()
+{
+  LCD.drawRect(64, 220, 112, 40, ILI9341_RED);
+  LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+  LCD.drawRect(64, 220, 112, 40, ILI9341_RED);
+  LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+  LCD.drawRect(64, 220, 112, 40, ILI9341_RED);
+}
+
+void resetEnemies()
+{
+  // reset all enemies to their default state
+  for (uint8_t j = 0; j < 4; j++)
+  {
+    for (uint8_t i = 0; i < 5; i++)
+    {
+      enemies[j][i].setType(0);
+      enemies[j][i].setYOffset(0);
+      enemies[j][i].setXOffset(0);
+    }
+  }
+  // reset the time movement to force the enemies to spawn when the game starts
+  timemovement = maxTimeMovement - 1;
+}
+
+/**
+ * @TODO: Reset enemy position upon re-start
+ */
+void startGame()
+{
+  resetEnemies();
+  LCD.fillScreen(ILI9341_BLACK);
+  LCD.fillScreen(ILI9341_BLACK);
+  gameState = 1;
+  TIMSK1 |= (1 << OCIE1A);
+  player.x = 120;
+  player.y = 280;
+  player.lives = 1;
+  player.displayLives();
+  player.drawPlayer();
+}
+
+void menuControlsEnable()
+{
+  if (menuState < 0)
+  {
+    menuState = 0;
+  }
+  else if (menuState > 47)
+  {
+    menuState = 47;
+  }
+  if (nunchukController.updateMenu() == 0)
+  {
+    menuState++;
+  }
+  if (nunchukController.updateMenu() == 1)
+  {
+    menuState--;
+  }
+  if (menuState < 16)
+  {
+    LCD.drawRect(64, 100, 112, 40, ILI9341_YELLOW);
+    LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+    if (nunchukController.isZButtonPressed() == true)
+    {
+      startGame();
+    }
+  }
+  if (menuState > 15 && menuState < 32)
+  {
+    LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 160, 112, 40, ILI9341_GREEN);
+    LCD.drawRect(64, 220, 112, 40, ILI9341_WHITE);
+  }
+  if (menuState > 31)
+  {
+    LCD.drawRect(64, 100, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 160, 112, 40, ILI9341_WHITE);
+    LCD.drawRect(64, 220, 112, 40, ILI9341_YELLOW);
+    if (nunchukController.isZButtonPressed() == true)
+    {
+      flickerButton();
+    }
+  }
+}
+
+/**
+ *@brief clears screen to show a game over message
+ */
+void gameOver()
+{
+  gameState = 2;
+  TIMSK1 &= ~(1 << OCIE1A);
+  LCD.fillScreen(ILI9341_WHITE);
+  LCD.fillScreen(ILI9341_BLACK);
+  LCD.drawChar(40, 40, 'G', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(80, 40, 'A', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(120, 40, 'M', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(160, 40, 'E', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(40, 90, 'O', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(80, 90, 'V', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(120, 90, 'E', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+  LCD.drawChar(160, 90, 'R', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+}
+
+/**
+  *@brief checks if an enemy is still alive at the lowest row before the next shift takes place
+  TODO: relocate gameOver check
+*/
+void checkEnemyTrespass()
+{
+  for (uint8_t i = 0; i < 5; i++)
+  {
+    if (trespassCheck == 1)
+    {
+      if (enemies[3][i].getType() != 0)
+      {
+        player.lives--;
+        player.displayLives();
+        trespassCheck = 0;
+      }
+      else
+      {
+      }
+    }
+  }
+  trespassCheck = 0;
+  if (player.lives == 0)
+  {
+    gameOver();
+  }
+}
+
+void dismissGameOver()
+{
+  if (nunchukController.isZButtonPressed() == true)
+  {
+    showMenu();
   }
 }
 
@@ -146,7 +346,7 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
-  player.drawPlayer();
+  showMenu();
   score.displayScore();
   nunchukController.initialize();
   ir_comm.IR_innit();
@@ -172,18 +372,32 @@ int main(void)
   setup();
   while (1)
   {
-    player.controlPlayer();
-    //! This is not a good solition to fix the player lagging, but it works for now
-    if (shouldDrawEnemy)
+    if (gameState == 0)
     {
-
-      enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
-      drawEnemyIndex++;
-      if (drawEnemyIndex == 5)
+      menuControlsEnable();
+    }
+    if (gameState == 1)
+    {
+      player.controlPlayer();
+      //! This is not a good solition to fix the player lagging, but it works for now
+      if (shouldDrawEnemy)
       {
-        drawEnemyIndex = 0;
-        shouldDrawEnemy--;
+        enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
+        drawEnemyIndex++;
+        if (drawEnemyIndex == 5)
+        {
+          drawEnemyIndex = 0;
+          shouldDrawEnemy--;
+        }
       }
+      if (trespassCheck == 1)
+      {
+        checkEnemyTrespass();
+      }
+    }
+    if (gameState == 2)
+    {
+      dismissGameOver();
     }
   }
   return 0;
