@@ -11,7 +11,8 @@
 #include "classes/Player.h"
 #include "classes/BulletList.h"
 #include "classes/Enemy.h"
-#include "classes/NunchukController.h" // Include the new header
+#include "classes/NunchukController.h"
+#include "classes/Score.h"
 // pins for the screen
 #define TFT_CS 10 // Chip select line for TFT display
 #define TFT_DC 9  // Data/command line for TFTú
@@ -21,16 +22,20 @@ Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
 NunchukController nunchukController;
 // varibles needed for the game
 bool playerIsMoving = false;
-// current gameStates: 0 (menu), 1 (solo), 2(game-over)
+// current gameStates: 0 (menu), 1 (solo), 2 (game-over)
 volatile uint8_t gameState = 0;
 volatile int8_t menuState = 0;
+uint8_t shouldDrawEnemy = 4;
+uint8_t drawEnemyIndex = 0;
 // enemies array, initialized here to prevent stack overflow
 Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}};
-BulletList bulletList(&playerIsMoving, enemies);
+//all required objects
+Score score(&LCD);
+BulletList bulletList(&playerIsMoving, enemies, &score);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
 // varibles needed for the timers
@@ -342,6 +347,8 @@ void setup()
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
   showMenu();
+  player.drawPlayer();
+  score.displayScore();
   nunchukController.initialize();
   ir_comm.IR_innit();
   player.displayLives();
@@ -373,6 +380,17 @@ int main(void)
     if (gameState == 1)
     {
       player.controlPlayer();
+      //! This is not a good solition to fix the player lagging, but it works for now
+      if (shouldDrawEnemy)
+      {
+        enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
+        drawEnemyIndex++;
+        if (drawEnemyIndex == 5)
+        {
+          drawEnemyIndex = 0;
+          shouldDrawEnemy--;
+        }
+      }
       if (trespassCheck == 1)
       {
         checkEnemyTrespass();

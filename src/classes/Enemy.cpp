@@ -4,6 +4,7 @@
 #define ENEMY_HEIGHT 30
 #define ENEMY_WIDTH 30
 #define ENEMY_TYPES 4
+extern uint8_t shouldDrawEnemy;
 static const uint16_t enemyArt[ENEMY_TYPES][ENEMY_HEIGHT][ENEMY_WIDTH] PROGMEM = {
     {{ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK},
      {ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK},
@@ -163,7 +164,7 @@ void Enemy::drawEnemy()
  */
 void Enemy::moveRowFix()
 {
-    LCD->fillRect(0, 0, 230, 230, ILI9341_BLACK);
+    LCD->fillRect(0, 20, 230, 210, ILI9341_BLACK);
 }
 
 /**
@@ -181,6 +182,7 @@ static uint8_t Enemy::getRandomType()
 static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uint8_t maxTimeMovement)
 {
     {
+        shouldDrawEnemy = 4;
         // Check if enemies can't move horizontally anymore
         if (timemovement == (maxTimeMovement - 1))
         {
@@ -209,7 +211,8 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
             {
                 enemiesArray[j][i].setXOffset((i * 40) + (4 * timemovement));
                 enemiesArray[j][i].setYOffset((j * 50));
-                enemiesArray[j][i].drawEnemy();
+                //! enable this to draw the enemies instantly after moving
+                // enemiesArray[j][i].drawEnemy();
             }
         }
     }
