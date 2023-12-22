@@ -164,7 +164,7 @@ void Enemy::drawEnemy()
  */
 void Enemy::moveRowFix()
 {
-    LCD->fillRect(0, 0, 230, 230, ILI9341_BLACK);
+    LCD->fillRect(0, 20, 230, 210, ILI9341_BLACK);
 }
 
 static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uint8_t maxTimeMovement)
