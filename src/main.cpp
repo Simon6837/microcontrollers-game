@@ -44,8 +44,10 @@ uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
 volatile uint8_t trespassCheck;
 // how many times the enemies move before they go down
-const uint8_t maxTimeMovement = 8;
+uint8_t maxTimeMovement = 8;
+// varibles related to level management
 uint8_t currentLevel = 1;
+uint8_t downMovementCount = 0;
 
 /**
  *  timer1 statistics
@@ -56,7 +58,6 @@ uint8_t currentLevel = 1;
  */
 void initTimer1(void)
 {
-
   TCCR1B |= (1 << WGM12) | (1 << CS12);
   TCNT1 = 0; // reset timer
   OCR1A = 2082;
@@ -136,6 +137,16 @@ ISR(TIMER1_COMPA_vect)
     timemovement++;
     if (timemovement == maxTimeMovement)
     {
+      if (maxTimeMovement != 1)
+      {
+        if (downMovementCount == 5)
+        {
+          maxTimeMovement--;
+          downMovementCount = 0;
+          currentLevel++;
+        }
+      }
+      downMovementCount++;
       timemovement = 0;
     }
     redrawEnemy = true;

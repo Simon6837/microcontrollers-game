@@ -186,6 +186,7 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
         // Check if enemies can't move horizontally anymore
         if (timemovement == (maxTimeMovement - 1))
         {
+            
             // Move enemies to the next row
             enemiesArray[0][0].moveRowFix();
             for (uint8_t j = 3; j > 0; j--)
