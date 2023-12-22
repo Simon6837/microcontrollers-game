@@ -1,12 +1,16 @@
 #include <avr/io.h>
 #include "IR.h"
 #include <HardwareSerial.h>
+#include <avr/delay.h>
 
 const uint8_t BitLength = 1;    // Bitlength is the amount of blocks that represents a bit
 const uint8_t LeaderLength = 5; // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
 uint8_t irblockcount = 0;
 uint8_t irsending = 0;
 uint8_t irbitsendcount = 0;
+bool done = false;
+uint8_t data = 0;;
+bool parity = false;
 
 IR::IR()
 {
@@ -54,18 +58,39 @@ void IR::timerStop()
     TCCR0A &= ~(1 << COM0A0);
 }
 
-void IR::StartComm()
+void IR::StartComm(uint8_t data)
 {
-    bool done = false;
     timerStart();
-    if (done)
-    {
-        timerStop();
+    if (done){
+        irblockcount = 0;
+        IR::data = data;
+        parity = calculateParity(IR::data);
+        done = false;
     }
 }
 
-void IR::resetblockcount(){
-    irblockcount = 0;
+bool IR::commOrder(uint8_t datalength)
+{
+    _delay_ms(1);
+    if (irsending == 0) { 
+        SendLeader();
+    }
+    else if (irsending == 1) {
+        SendStartbit();
+    }
+    else if (irsending == 2) {
+        SendDatabit(data, datalength);
+    }
+    else if (irsending == 3){
+        done = SendParitybit(parity);
+        if (done) {
+            data = 0;
+            timerStop();
+            Serial.println();
+            return true;
+        }
+    }
+    return false;
 }
 
 void IR::UpdateBlockcount()
@@ -73,9 +98,22 @@ void IR::UpdateBlockcount()
     irblockcount++;
 }
 
-void IR::SendLeader(){
-if (irsending == 0){
+bool IR::calculateParity(uint8_t data)
+{
+  int count = 0;
+  for (int i = 0; i < 8; i++)
+  {
+    // Serial.println(data & (1 << i));
+    if ((data & (1 << i)) != 0)
+    {
+      count++;
+    }
+  }
+  return (count % 2 == 0); // Even parity
+}
 
+void IR::SendLeader()
+{
     if (irblockcount < (2 * ((LeaderLength + 1) / 3)))
     {
         TCCR0A |= (1 << COM0A0);
@@ -89,11 +127,11 @@ if (irsending == 0){
         irblockcount = 0;
         irsending++;
     }
-}}
+}
 
 void IR::SendStartbit()
 {
-    if (irsending == 1){
+
     if (irblockcount == 0)
     {
         TCCR0A |= (1 << COM0A0);
@@ -107,12 +145,10 @@ void IR::SendStartbit()
         irblockcount = 0;
         irsending++;
     }
-    }
 }
 
 void IR::SendDatabit(uint8_t datatosend, uint8_t datalength)
 {
-    if (irsending == 2){
     if (irblockcount == 0)
     {
 
@@ -145,34 +181,38 @@ void IR::SendDatabit(uint8_t datatosend, uint8_t datalength)
             irbitsendcount = 0;
             irsending++;
         }
-    }}
+    }
 }
 
-void IR::SendParitybit(bool parityeven){
-    if (irsending == 3){
-      if (irblockcount < 2)
-  {
-    if (parityeven)
+bool IR::SendParitybit(bool parityeven)
+{
+    if (irblockcount < 2)
     {
-      TCCR0A |= (1 << COM0A0);
+        if (parityeven)
+        {
+            TCCR0A |= (1 << COM0A0);
+        }
+        else
+        {
+            TCCR0A &= ~(1 << COM0A0);
+        }
+    }
+    else if (irblockcount < 4)
+    {
+        if (parityeven)
+        {
+            TCCR0A &= ~(1 << COM0A0);
+        }
+        else
+        {
+            TCCR0A |= (1 << COM0A0);
+        }
     }
     else
     {
-      TCCR0A &= ~(1 << COM0A0);
+        irblockcount = 0;
+        irsending = 0;
+        return true;
     }
-  }
-  else if (irblockcount < 4)
-  {
-    if (parityeven)
-    {
-      TCCR0A &= ~(1 << COM0A0);
-    }
-    else
-    {
-      TCCR0A |= (1 << COM0A0);
-    }
-  } else {
-    irblockcount = 0;
-    irsending = 0;
-  }}
+    return false;
 }

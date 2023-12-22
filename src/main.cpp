@@ -106,20 +106,6 @@ void initPotpins()
   PORTD |= (1 << PORTD5);
 }
 
-bool calculateParity(uint8_t data)
-{
-  int count = 0;
-  for (int i = 0; i < 8; i++)
-  {
-    // Serial.println(data & (1 << i));
-    if ((data & (1 << i)) != 0)
-    {
-      count++;
-    }
-  }
-  return (count % 2 == 0); // Even parity
-}
-
 ISR(ADC_vect)
 {
   if (ADCH <= 10)
@@ -144,12 +130,13 @@ ISR(TIMER1_COMPA_vect)
   sei();
   if (senddata)
   {
-    ir_comm.StartComm();
+    ir_comm.StartComm(senddata);
   }
   bulletList.updateBullets();
   counteronesec++;
   if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
+    senddata = 0b11;
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
     if (timemovement == maxTimeMovement)
@@ -194,56 +181,20 @@ ISR(TIMER0_COMPA_vect)
 {
   t++;
   u++;
-  if (u == 10){
-    ir_comm.SendLeader();
-    ir_comm.SendStartbit();
-    ir_comm.SendDatabit(datatosend, pvpdatalength);
-    ir_comm.SendParitybit(parityeven);
+  if (u == 10)
+  {
+    sendingdata = ir_comm.commOrder(pvpdatalength);
     u = 0;
   }
   if (sendingdata)
   {
-    ir_comm.resetblockcount();
-    datatosend = senddata;
     sendingdata = false;
-    parityeven = calculateParity(datatosend);
-    // senddata = 0b00;
+    senddata = 0b00;
   }
   if (t == Block)
   {
     t = 0;
-    blockcount++;
     ir_comm.UpdateBlockcount();
-  }
-
-  if (sending == 0 && blockcount > LeaderLength)
-  {
-    blockcount = 0;
-    sending++;
-  }
-
-  if (sending == 1 && blockcount > BitLength)
-  {
-    
-    blockcount = 0;
-  }
-
-  if (sending == 2 && blockcount > BitLength)
-  {
-    bitsendcount++;
-    blockcount = 0;
-    if (bitsendcount >= pvpdatalength)
-    {
-      sending++;
-      bitsendcount = 0;
-    }
-  }
-  if (sending == 3 && blockcount > ParityLength)
-  {
-    sending = 0;
-    blockcount = 0;
-    // data = 0b00000000;
-    sendingdata = true;
   }
 }
 
