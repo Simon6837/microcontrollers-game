@@ -15,6 +15,7 @@ public:
     void increaseScore();
     void setHighscore();
     void displayScore();
+    void resetScore();
 };
 
 #endif // SCORE_H

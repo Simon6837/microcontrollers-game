@@ -34,7 +34,7 @@ Enemy enemies[4][5] = {
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)}};
-//all required objects
+// all required objects
 Score score(&LCD);
 BulletList bulletList(&playerIsMoving, enemies, &score);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
@@ -45,7 +45,12 @@ uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
 volatile uint8_t trespassCheck;
 // how many times the enemies move before they go down
-const uint8_t maxTimeMovement = 8;
+const uint8_t defaultMaxTimeMovement = 8;
+const uint8_t defaultCurrentLevel = 1;
+// varibles related to level management
+uint8_t maxTimeMovement = 8;
+uint8_t currentLevel = 1;
+uint8_t downMovementCount = 0;
 
 /**
  *  timer1 statistics
@@ -56,7 +61,6 @@ const uint8_t maxTimeMovement = 8;
  */
 void initTimer1(void)
 {
-
   TCCR1B |= (1 << WGM12) | (1 << CS12);
   TCNT1 = 0; // reset timer
   OCR1A = 2082;
@@ -136,6 +140,16 @@ ISR(TIMER1_COMPA_vect)
     timemovement++;
     if (timemovement == maxTimeMovement)
     {
+      if (maxTimeMovement != 1)
+      {
+        if (downMovementCount == 5)
+        {
+          maxTimeMovement--;
+          downMovementCount = 0;
+          currentLevel++;
+        }
+      }
+      downMovementCount++;
       timemovement = 0;
     }
     redrawEnemy = true;
@@ -226,6 +240,9 @@ void resetEnemies()
 void startGame()
 {
   resetEnemies();
+  maxTimeMovement = defaultMaxTimeMovement;
+  currentLevel = defaultCurrentLevel;
+  downMovementCount = 0;
   LCD.fillScreen(ILI9341_BLACK);
   LCD.fillScreen(ILI9341_BLACK);
   gameState = 1;
@@ -235,6 +252,7 @@ void startGame()
   player.lives = 1;
   player.displayLives();
   player.drawPlayer();
+  score.resetScore();
 }
 
 void menuControlsEnable()
@@ -388,7 +406,6 @@ void setup()
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
   showMenu();
-  score.displayScore();
   nunchukController.initialize();
   ir_comm.IR_innit();
   player.displayLives();
