@@ -40,6 +40,22 @@ uint8_t NunchukController::updatePlayerControl()
   return 2;
 }
 
+uint8_t NunchukController::updateMenu()
+{
+  nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
+  if (nunchuk.state.joy_y_axis < 115)
+  {
+    // Code to move player left
+    return 0;
+  }
+  else if (nunchuk.state.joy_y_axis > 140)
+  {
+    // Code to move player right
+    return 1;
+  }
+  return 2;
+}
+
 bool NunchukController::isZButtonPressed()
 {
   nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
