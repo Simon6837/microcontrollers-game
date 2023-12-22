@@ -45,8 +45,10 @@ uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
 volatile uint8_t trespassCheck;
 // how many times the enemies move before they go down
-uint8_t maxTimeMovement = 8;
+const uint8_t defaultMaxTimeMovement = 8;
+const uint8_t defaultCurrentLevel = 1;
 // varibles related to level management
+uint8_t maxTimeMovement = 8;
 uint8_t currentLevel = 1;
 uint8_t downMovementCount = 0;
 
@@ -238,6 +240,9 @@ void resetEnemies()
 void startGame()
 {
   resetEnemies();
+  maxTimeMovement = defaultMaxTimeMovement;
+  currentLevel = defaultCurrentLevel;
+  downMovementCount = 0;
   LCD.fillScreen(ILI9341_BLACK);
   LCD.fillScreen(ILI9341_BLACK);
   gameState = 1;
