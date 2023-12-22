@@ -440,7 +440,6 @@ int main(void)
     {
       dismissGameOver();
     }
-    Serial.println(rotationState);
   }
   return 0;
 }
