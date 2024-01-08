@@ -1,11 +1,14 @@
 // BulletList.cpp
 #include "BulletList.h"
-#define SCREEN_TOP_OFFSET 10 // the offset from the top of the screen for deleting bullets
-BulletList::BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5])
+#define SCREEN_TOP_OFFSET 20 // the offset from the top of the screen for deleting bullets
+extern const uint8_t maxEnemyRows;
+extern const uint8_t maxEnemyColumns;
+BulletList::BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5], Score *scoreObject)
 {
     playerIsMoving = playerIsMovingValue;
     head = nullptr;
     enemies = enemiesArray;
+    score = scoreObject;
 }
 /**
  * @brief Adds a bullet to the list
@@ -30,22 +33,16 @@ void BulletList::updateBullets()
     while (temp != nullptr)
     {
         // Check if bullet has hit a enemy
-        for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t j = 0; j < maxEnemyRows; j++)
         {
-            for (uint8_t i = 0; i < 5; i++)
+            for (uint8_t i = 0; i < maxEnemyColumns; i++)
             {
-                // Serial.println(enemies[j][i].getXPosition());
-                // Serial.println(enemies[j][i].getYPosition());
-                // Serial.println(temp->bullet->getXPosition());
-                // Serial.println(temp->bullet->getYPosition());
-                // Serial.println(" ");
-
                 if (temp->bullet->getXPosition() > enemies[j][i].getXPosition() &&
                     temp->bullet->getXPosition() < enemies[j][i].getXPosition() + 30 &&
                     temp->bullet->getYPosition() > enemies[j][i].getYPosition() &&
                     temp->bullet->getYPosition() < enemies[j][i].getYPosition() + 30)
                 {
-                    if (enemies[j][i].getType() == 1)
+                    if (enemies[j][i].getType() != 0)
                     {
                         enemies[j][i].setType(0);
                         enemies[j][i].drawEnemy();
@@ -55,7 +52,8 @@ void BulletList::updateBullets()
                         delete temp->bullet;
                         delete temp;
                         temp = (prev == nullptr) ? head : prev->next;
-
+                        // increase score
+                        score->increaseScore();
                         return;
                     }
                 }
@@ -74,7 +72,7 @@ void BulletList::updateBullets()
 
             continue;
         }
-        // Update bullet position
+        // Update bullet position with respect to player movement
         else
         {
             uint8_t speed = 0;

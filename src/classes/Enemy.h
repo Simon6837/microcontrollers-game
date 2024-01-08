@@ -3,7 +3,8 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
-
+extern const uint8_t maxEnemyRows;
+extern const uint8_t maxEnemyColumns;
 class Enemy
 {
 private:
@@ -24,7 +25,7 @@ public:
     void setType(uint8_t newType);
     void setXOffset(uint8_t newXOffset);
     void setYOffset(uint16_t newYOffset);
-
+    static uint8_t getRandomType();
 };
 
 

@@ -4,7 +4,7 @@
 #include "Bullet.h"
 #include "NunchukController.h"
 #include "Enemy.h"
-
+#include "Score.h"
 class BulletList
 {
 private:
@@ -16,9 +16,10 @@ private:
     Node *head;
     bool *playerIsMoving;
     Enemy (*enemies)[5];
+    Score *score;
 
 public:
-    BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5]);
+    BulletList(bool *playerIsMovingValue, Enemy (*enemiesArray)[5], Score *scoreObject);
     void addBullet(Bullet *bullet);
     void updateBullets();
     int8_t getBulletCount();
