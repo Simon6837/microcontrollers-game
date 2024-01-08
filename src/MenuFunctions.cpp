@@ -1,8 +1,14 @@
 #include "MenuFunctions.h"
 
-extern volatile uint8_t gameState;
+enum gameStates
+{
+    MENU,
+    SOLO,
+    GAMEOVER
+};
+extern volatile gameStates gameState;
 extern volatile int8_t menuState;
-extern uint8_t rotationState;
+extern bool rotationState;
 extern bool allowGameToStart;
 
 /**
@@ -11,7 +17,7 @@ extern bool allowGameToStart;
  */
 void showMenu(Adafruit_ILI9341 &LCD)
 {
-    gameState = 0;
+    gameState = MENU;
     LCD.fillScreen(ILI9341_BLACK);
     // stop timer 1
     TIMSK1 &= ~(1 << OCIE1A);
@@ -167,7 +173,7 @@ void menuControlsEnable(NunchukController &nunchukController, Adafruit_ILI9341 &
  */
 void gameOver(Adafruit_ILI9341 &LCD)
 {
-    gameState = 2;
+    gameState = GAMEOVER;
     TIMSK1 &= ~(1 << OCIE1A);
     LCD.fillScreen(ILI9341_WHITE);
     LCD.fillScreen(ILI9341_BLACK);
