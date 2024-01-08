@@ -36,7 +36,7 @@ uint8_t timemovement = 0;
 // how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
 // variables used for ir
-const uint8_t T = 50;                   // T is the amount of pulses we want per block
+const uint8_t T = 200;                   // T is the amount of pulses we want per block
 const uint8_t Block = 2 * T;            // Block is the amount of times we need an interupt
 const uint8_t LeaderLength = 5;         // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
 const uint8_t BitLength = 1;            // Bitlength is the amount of blocks that represents a bit
@@ -53,6 +53,8 @@ uint8_t datatosend = 0b00000000;        // data that is being send
 volatile bool parityeven = false;       // used for paritybit
 volatile bool sendingdata = true;
 uint8_t u = 0;
+bool countset = true;
+uint8_t readinterrupt = 0;
 
 /**
  *  timer1 statistics
@@ -130,7 +132,9 @@ ISR(TIMER1_COMPA_vect)
   sei();
   if (senddata)
   {
-    ir_comm.StartComm(senddata);
+    if (ir_comm.StartComm(senddata)){
+    senddata = 0;
+    }
   }
   bulletList.updateBullets();
   counteronesec++;
@@ -181,21 +185,28 @@ ISR(TIMER0_COMPA_vect)
 {
   t++;
   u++;
-  if (u == 10)
+  readinterrupt++;
+  if (u == 40)
   {
-    sendingdata = ir_comm.commOrder(pvpdatalength);
+    ir_comm.commOrder(pvpdatalength);
     u = 0;
-  }
-  if (sendingdata)
-  {
-    sendingdata = false;
-    senddata = 0b00;
   }
   if (t == Block)
   {
     t = 0;
     ir_comm.UpdateBlockcount();
   }
+  if (readinterrupt == Block)
+  {
+    readinterrupt = 0;
+    // ir_comm.UpdateReadcount();
+  }
+  if (readinterrupt == T && !countset)
+  {
+    readinterrupt = 0;
+    countset = true;
+  }
+
 }
 
 /**

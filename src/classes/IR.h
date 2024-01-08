@@ -6,7 +6,7 @@ class IR
 public:
     IR();
     void IR_innit();
-    void StartComm(uint8_t data);
+    bool StartComm(uint8_t data);
     void UpdateBlockcount();
     bool commOrder(uint8_t datalength);
 

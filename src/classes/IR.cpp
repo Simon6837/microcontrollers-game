@@ -54,11 +54,11 @@ void IR::timerStart()
 
 void IR::timerStop()
 {
-    TIMSK0 &= ~(1 << OCIE0A);
+    // TIMSK0 &= ~(1 << OCIE0A);
     TCCR0A &= ~(1 << COM0A0);
 }
 
-void IR::StartComm(uint8_t data)
+bool IR::StartComm(uint8_t data)
 {
     timerStart();
     if (done){
@@ -66,12 +66,15 @@ void IR::StartComm(uint8_t data)
         IR::data = data;
         parity = calculateParity(IR::data);
         done = false;
+        return true;
     }
+    return false;
 }
 
 bool IR::commOrder(uint8_t datalength)
 {
     _delay_ms(1);
+    if (!done){
     if (irsending == 0) { 
         SendLeader();
     }
@@ -89,6 +92,7 @@ bool IR::commOrder(uint8_t datalength)
             Serial.println();
             return true;
         }
+    }
     }
     return false;
 }
