@@ -10,6 +10,7 @@ public:
     void UpdateBlockcount();
     bool commOrder(uint8_t datalength);
     void UpdateReadcount();
+    void SetNewDataReceived();
 private:
     uint8_t blockcount;
     uint8_t irsending;
