@@ -56,7 +56,7 @@ uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
 volatile bool trespassCheck;
-// how many times the enemies move before they go down
+//  how many times the enemies move before they go down
 const uint8_t defaultMaxTimeMovement = 8;
 const uint8_t defaultCurrentLevel = 1;
 const uint8_t trespassCheckCounterThreshhold = 43;
@@ -66,6 +66,27 @@ uint8_t maxTimeMovement = 8;
 uint8_t currentLevel = 1;
 uint8_t downMovementCount = 0;
 uint8_t downMovementCountTreashhold = 5;
+// variables used for ir
+const uint8_t T = 50;                // T is the amount of pulses we want per block
+const uint8_t Block = 2 * T;         // Block is the amount of times we need an interupt
+const uint8_t LeaderLength = 5;      // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
+const uint8_t BitLength = 1;         // Bitlength is the amount of blocks that represents a bit
+const uint8_t ParityLength = 3;      // Paritylength is the amount of blocks that represent the parity bit
+const uint8_t pvpdatalength = 16;    // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
+const uint8_t bit1 = 0b01;           // bitmask for bit 0
+const uint8_t bit2 = 0b10;           // bitmask for bit 1
+volatile uint8_t t = 0;              // t is the amount of interrupts that have passed
+uint8_t blockcount = 0;              // blockcount is the amount of blocks that have been send
+uint8_t sending = 0;                 // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
+volatile uint8_t bitsendcount = 0;   // which bit of the data is being send
+volatile uint16_t senddata = 0xFFFF; // data is the data that needs to be send over
+uint8_t datatosend = 0b00000000;     // data that is being send
+volatile bool parityeven = false;    // used for paritybit
+volatile bool sendingdata = true;
+uint8_t u = 0;
+bool countset = true;
+uint8_t readinterrupt = 0;
+volatile bool int0FallingEdge = false;
 volatile uint8_t maxSoloLives = 1;
 
 /**
@@ -143,6 +164,16 @@ ISR(TIMER2_OVF_vect)
 
 ISR(TIMER1_COMPA_vect)
 {
+  sei();
+  // ir related
+  if (senddata)
+  {
+    if (ir_comm.StartComm(senddata))
+    {
+      senddata = 0;
+    }
+  }
+  // gameRelated
   bulletList.updateBullets();
   counteronesec++;
   if (counteronesec == trespassCheckCounterThreshhold)
@@ -154,23 +185,13 @@ ISR(TIMER1_COMPA_vect)
   }
   if (counteronesec == enemyMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
+    // senddata = 0xFF0F;
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
     if (timemovement == maxTimeMovement)
     {
-      if (maxTimeMovement != 1)
-      {
-        if (downMovementCount == downMovementCountTreashhold)
-        {
-          maxTimeMovement--;
-          downMovementCount = 0;
-          currentLevel++;
-        }
-      }
-      downMovementCount++;
       timemovement = 0;
     }
-    redrawEnemy = true;
     counteronesec = 0;
   }
 }
@@ -201,11 +222,12 @@ void startGame()
   currentLevel = defaultCurrentLevel;
   downMovementCount = 0;
   LCD.fillScreen(ILI9341_BLACK);
+  LCD.fillScreen(ILI9341_BLACK);
   gameState = SOLO;
   TIMSK1 |= (1 << OCIE1A);
   player.x = playerInitialXPosition;
   player.y = playerInitialYPosition;
-  //TODO: make the lives dynamic based on gamemode
+  // TODO: make the lives dynamic based on gamemode
   player.lives = maxSoloLives;
   player.displayLives();
   player.drawPlayer();
@@ -254,20 +276,57 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
-  showMenu(LCD);
+  // need to be done when sending score
+  EICRA |= (1 << ISC01); // Set falling edge trigger
+  EIMSK |= (1 << INT0);  // Enable INT0 interrupt
+  //! This seems unnessesary
+  // for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
+  // {
+  //   for (uint8_t i = 0; i < 5; i++)
+  //   {
+  //     enemies[j][i].drawEnemy((i * 40), (j * 50) + (1 * timemovement)); // voor rijen links en rechts j/2 als rest 1 = tijdsverplaatsing + als rest = 0 tijdsverplaatsing -, als max reset tijdsverplaatsing
+  //   }
+  // }
+  // player.drawPlayer();
   nunchukController.initialize();
-  ir_comm.IR_innit();
+  // ir_comm.IR_innit();
   player.displayLives();
+  showMenu(LCD);
 }
 
-/**
- * @brief Interrupt service routine for the timer
- * @note Updates the position of the bullets(to prevent delays on the screen)
- * @note Toggles the LED for the IR communication
- */
 ISR(TIMER0_COMPA_vect)
 {
-  PORTD ^= (1 << PORTD6);
+  t++;
+  u++;
+  readinterrupt++;
+  if (u == 10)
+  {
+    ir_comm.commOrder(pvpdatalength);
+    u = 0;
+  }
+  if (t == Block)
+  {
+    t = 0;
+    ir_comm.UpdateBlockcount();
+  }
+  if (readinterrupt == Block)
+  {
+    readinterrupt = 0;
+    ir_comm.UpdateReadcount();
+  }
+  if (int0FallingEdge && readinterrupt == T && countset)
+  {
+    readinterrupt = 0;
+    countset = false;
+  }
+}
+
+ISR(INT0_vect)
+{
+  // Handle INT0 falling edge detection
+  int0FallingEdge = true;
+  ir_comm.SetNewDataReceived();
+  // Serial.println("ISR executed");
 }
 
 /**
@@ -287,6 +346,7 @@ void drawEnemies()
     }
   }
 }
+
 /**
  * @brief Main loop
  * @note Controls the player
@@ -296,7 +356,7 @@ int main(void)
   setup();
   while (1)
   {
-    //TODO: turn this into a switch case and move the SOLO code to a function
+    // TODO: turn this into a switch case and move the SOLO code to a function
     if (allowGameToStart == true)
     {
       startGame();
