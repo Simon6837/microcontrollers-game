@@ -119,27 +119,26 @@ void IR::UpdateReadcount()
 
     readcount++;
     bool pinD2Value = !(PIND & (1 << PIND2)); // Invert the value to detect "10"
-        Serial.println(pinD2Value);
+        // Serial.println(newDataReceived);
+    readings[index] = pinD2Value;
+    index = (index + 1);
 
-    // readings[index] = pinD2Value;
-    // index = (index + 1);
-
-    // // if (newDataReceived)
+    // if (newDataReceived)
     
-    //     readings[index] = pinD2Value;
-    //     index = (index + 1) % MAX_READINGS; // Use modulo to wrap around the index
+        readings[index] = pinD2Value;
+        index = (index + 1) % MAX_READINGS; // Use modulo to wrap around the index
 
-    //     if (index == 0)
-    //     {
-    //     // Serial.println("i worky worky");
-    //         for (int i = 0; i < MAX_READINGS; i++)
-    //         {
-    //             Serial.print(readings[i]);
-    //         }
-    //         Serial.println();
-    //         newDataReceived = false; // Reset the flag after processing the data
-    //         // Serial.println(newDataReceived);
-    //     }
+        if (index == 0)
+        {
+        // Serial.println("i worky worky");
+            for (int i = 0; i < MAX_READINGS; i++)
+            {
+                Serial.print(readings[i]);
+            }
+            Serial.println();
+            newDataReceived = false; // Reset the flag after processing the data
+            // Serial.println(newDataReceived);
+        }
     
 }
 
