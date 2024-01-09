@@ -190,8 +190,19 @@ ISR(TIMER1_COMPA_vect)
     timemovement++;
     if (timemovement == maxTimeMovement)
     {
+      if (maxTimeMovement != 1)
+      {
+        if (downMovementCount == downMovementCountTreashhold)
+        {
+          maxTimeMovement--;
+          downMovementCount = 0;
+          currentLevel++;
+        }
+      }
+      downMovementCount++;
       timemovement = 0;
     }
+    redrawEnemy = true;
     counteronesec = 0;
   }
 }
