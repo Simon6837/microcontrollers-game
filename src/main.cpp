@@ -23,6 +23,8 @@ const int brightnessBottomLimit = 10;
 NunchukController nunchukController;
 // varibles needed for the drawFunctions
 bool playerIsMoving = false;
+const uint8_t playerInitialXPosition = 120;
+const uint16_t playerInitialYPosition = 280;
 uint8_t shouldDrawEnemy = 4;
 uint8_t drawEnemyIndex = 0;
 // menu related varibles
@@ -64,6 +66,7 @@ uint8_t maxTimeMovement = 8;
 uint8_t currentLevel = 1;
 uint8_t downMovementCount = 0;
 uint8_t downMovementCountTreashhold = 5;
+volatile uint8_t maxSoloLives = 1;
 
 /**
  *  timer1 statistics
@@ -198,12 +201,12 @@ void startGame()
   currentLevel = defaultCurrentLevel;
   downMovementCount = 0;
   LCD.fillScreen(ILI9341_BLACK);
-  LCD.fillScreen(ILI9341_BLACK);
   gameState = SOLO;
   TIMSK1 |= (1 << OCIE1A);
-  player.x = 120;
-  player.y = 280;
-  player.lives = 1;
+  player.x = playerInitialXPosition;
+  player.y = playerInitialYPosition;
+  //TODO: make the lives dynamic based on gamemode
+  player.lives = maxSoloLives;
   player.displayLives();
   player.drawPlayer();
   score.resetScore();
@@ -277,7 +280,7 @@ void drawEnemies()
   {
     enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
     drawEnemyIndex++;
-    if (drawEnemyIndex == 5)
+    if (drawEnemyIndex == maxEnemyColumns)
     {
       drawEnemyIndex = 0;
       shouldDrawEnemy--;
@@ -293,6 +296,7 @@ int main(void)
   setup();
   while (1)
   {
+    //TODO: turn this into a switch case and move the SOLO code to a function
     if (allowGameToStart == true)
     {
       startGame();
