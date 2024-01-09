@@ -11,6 +11,8 @@ public:
     bool commOrder(uint8_t datalength);
     void UpdateReadcount();
     void SetNewDataReceived();
+    void timerfullStop();
+    
 private:
     uint8_t blockcount;
     uint8_t irsending;

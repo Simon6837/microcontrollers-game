@@ -51,6 +51,7 @@ Score score(&LCD);
 BulletList bulletList(&playerIsMoving, enemies, &score);
 Player player(120, 280, 3, &LCD, &nunchukController, &bulletList, &playerIsMoving);
 IR ir_comm;
+bool sharestate = false;
 // varibles needed for the timers
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
@@ -88,6 +89,9 @@ bool countset = true;
 uint8_t readinterrupt = 0;
 volatile bool int0FallingEdge = false;
 volatile uint8_t maxSoloLives = 1;
+
+bool toggled = true;
+bool gamerunning = false;
 
 /**
  *  timer1 statistics
@@ -165,34 +169,46 @@ ISR(TIMER2_OVF_vect)
 ISR(TIMER1_COMPA_vect)
 {
   sei();
+  counteronesec++;
   // ir related
-  if (senddata)
+  if (counteronesec == 5) {
+    toggled = true;
+  }
+  if (sharestate)
   {
-    if (ir_comm.StartComm(senddata))
+    if (counteronesec == 5){
+    senddata = score.getHighscore();
+    }
+    // Serial.println(senddata);
+    if (senddata)
     {
-      senddata = 0;
+      if (ir_comm.StartComm(senddata))
+      {
+        senddata = 0;
+      }
     }
   }
   // gameRelated
-  bulletList.updateBullets();
-  counteronesec++;
-  if (counteronesec == trespassCheckCounterThreshhold)
+  if (gamerunning)
   {
-    if (timemovement == (maxTimeMovement - 1))
+    bulletList.updateBullets();
+    if (counteronesec == trespassCheckCounterThreshhold)
     {
-      trespassCheck = true;
+      if (timemovement == (maxTimeMovement - 1))
+      {
+        trespassCheck = true;
+      }
     }
-  }
-  if (counteronesec == enemyMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
-  {
-    // senddata = 0xFF0F;
-    Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
-    timemovement++;
-    if (timemovement == maxTimeMovement)
+    if (counteronesec == enemyMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
     {
-      timemovement = 0;
+      Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
+      timemovement++;
+      if (timemovement == maxTimeMovement)
+      {
+        timemovement = 0;
+      }
+      counteronesec = 0;
     }
-    counteronesec = 0;
   }
 }
 
@@ -224,7 +240,7 @@ void startGame()
   LCD.fillScreen(ILI9341_BLACK);
   LCD.fillScreen(ILI9341_BLACK);
   gameState = SOLO;
-  TIMSK1 |= (1 << OCIE1A);
+  // TIMSK1 |= (1 << OCIE1A);
   player.x = playerInitialXPosition;
   player.y = playerInitialYPosition;
   // TODO: make the lives dynamic based on gamemode
@@ -233,6 +249,7 @@ void startGame()
   player.drawPlayer();
   score.resetScore();
   allowGameToStart = false;
+  gamerunning = true;
 }
 
 /**
@@ -289,13 +306,18 @@ void setup()
   // }
   // player.drawPlayer();
   nunchukController.initialize();
-  // ir_comm.IR_innit();
+  ir_comm.IR_innit();
   player.displayLives();
   showMenu(LCD);
 }
 
 ISR(TIMER0_COMPA_vect)
 {
+  if (!sharestate)
+  {
+    ir_comm.timerfullStop();
+    countset = true;
+  }
   t++;
   u++;
   readinterrupt++;

@@ -9,9 +9,9 @@ class Score
 private:
     uint16_t score;
     Adafruit_ILI9341 *LCD;
-    uint16_t getHighscore();
 public:
     Score(Adafruit_ILI9341 *lcd);
+    uint16_t getHighscore();
     void increaseScore();
     void setHighscore();
     void displayScore();

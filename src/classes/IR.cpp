@@ -43,7 +43,7 @@ void IR::IR_innit()
     DDRD |= (1 << DDD6);
     PORTD |= (1 << PORTD6);
     Timer0_innit();
-    timerStop();
+    timerfullStop();
 }
 
 void IR::Timer0_innit()
@@ -77,6 +77,12 @@ void IR::timerStart()
 void IR::timerStop()
 {
     // TIMSK0 &= ~(1 << OCIE0A);
+    TCCR0A &= ~(1 << COM0A0);
+}
+
+void IR::timerfullStop()
+{
+    TIMSK0 &= ~(1 << OCIE0A);
     TCCR0A &= ~(1 << COM0A0);
 }
 
@@ -118,6 +124,7 @@ bool IR::commOrder(uint8_t datalength)
             {
                 data = 0;
                 timerStop();
+
                 return true;
             }
         }
@@ -144,7 +151,7 @@ void IR::UpdateReadcount()
     }
     else if (readingState == leader)
     {
-        Serial.println(leaderReceiveCheck);
+        // Serial.println(leaderReceiveCheck);
         leaderReceiveCheck = (leaderReceiveCheck << 1) | pinD2Value;
         leaderReceiveCheck &= (0b111);
         if (leaderReceiveCheck == (0b100))
@@ -189,7 +196,7 @@ void IR::UpdateReadcount()
     }
     else if (readingState == paritybit)
     {
-        Serial.println(receivedData);
+        // Serial.println(receivedData);
         // TODO: reset all variables with a function
         readingState = reversing;
         leaderReceiveCheck = 0;

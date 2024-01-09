@@ -10,6 +10,9 @@ extern volatile gameStates gameState;
 extern volatile int8_t menuState;
 extern bool rotationState;
 extern bool allowGameToStart;
+extern bool sharestate;
+extern bool toggled;
+extern bool gamerunning;
 const uint8_t buttonWidth = 112;
 const uint8_t buttonHeight = 40;
 const uint8_t flipButtonWidth = 50;
@@ -23,7 +26,7 @@ void showMenu(Adafruit_ILI9341 &LCD)
     gameState = MENU;
     LCD.fillScreen(ILI9341_BLACK);
     // stop timer 1
-    TIMSK1 &= ~(1 << OCIE1A);
+    // TIMSK1 &= ~(1 << OCIE1A);
     // title
     LCD.drawChar(40, 20, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
     LCD.drawChar(52, 20, 'P', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
@@ -170,6 +173,14 @@ void menuControlsEnable(NunchukController &nunchukController, Adafruit_ILI9341 &
             score.resetHighScore();
             flickerButton(LCD, 10, 64, 240);
         }
+        if (nunchukController.isZButtonPressed() == true)
+        {
+            if (toggled){
+            sharestate = !sharestate;
+            Serial.println("togglestate");
+            toggled = false;
+            }
+        }
     }
     else if (menuState > 63)
     {
@@ -206,7 +217,8 @@ void menuControlsEnable(NunchukController &nunchukController, Adafruit_ILI9341 &
 void gameOver(Adafruit_ILI9341 &LCD)
 {
     gameState = GAMEOVER;
-    TIMSK1 &= ~(1 << OCIE1A);
+    gamerunning = false;
+    // TIMSK1 &= ~(1 << OCIE1A);
     LCD.fillScreen(ILI9341_WHITE);
     LCD.fillScreen(ILI9341_BLACK);
     LCD.drawChar(50, 40, 'G', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
