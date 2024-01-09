@@ -17,6 +17,22 @@ bool pinD2Value = false;
 static bool readings[MAX_READINGS];           // Array to store readings
 static volatile bool newDataReceived = false; // Flag to indicate when new data is received
 
+enum readingStates
+{
+    none,
+    leader,
+    startbit,
+    databit,
+    paritybit
+};
+static volatile readingStates readingState = none;
+
+static volatile uint8_t leaderReceiveCheck = 0;
+static volatile bool receivedFullBit = false;
+static volatile uint8_t previousReceivedBit = 0;
+static volatile uint16_t receivedData = 0;
+static volatile uint8_t dataCount = 0;
+
 IR::IR()
 {
 }
@@ -115,37 +131,80 @@ void IR::UpdateBlockcount()
 
 void IR::UpdateReadcount()
 {
-    static int index = 0; // Index to keep track of the current position in the array
-
-    readcount++;
     bool pinD2Value = !(PIND & (1 << PIND2)); // Invert the value to detect "10"
-        // Serial.println(newDataReceived);
-    readings[index] = pinD2Value;
-    index = (index + 1);
-
-    // if (newDataReceived)
-    
-        readings[index] = pinD2Value;
-        index = (index + 1) % MAX_READINGS; // Use modulo to wrap around the index
-
-        if (index == 0)
+                                              // Serial.println(newDataReceived);
+    // Serial.println(pinD2Value);
+    if (readingState == none)
+    {
+        if (pinD2Value == 1)
         {
-        // Serial.println("i worky worky");
-            for (int i = 0; i < MAX_READINGS; i++)
-            {
-                Serial.print(readings[i]);
-            }
-            Serial.println();
-            newDataReceived = false; // Reset the flag after processing the data
-            // Serial.println(newDataReceived);
+            readingState = leader;
+            leaderReceiveCheck = (pinD2Value << 0);
         }
-    
+    }
+    else if (readingState == leader)
+    {
+        Serial.println("leader");
+        Serial.println(leaderReceiveCheck);
+        leaderReceiveCheck = (leaderReceiveCheck << 1) | pinD2Value;
+        leaderReceiveCheck &= (0b111);
+        if (leaderReceiveCheck == (0b100))
+        {
+            readingState = startbit;
+        }
+    }
+    else if (readingState == startbit)
+    {
+        Serial.println("startbit");
+
+        if (pinD2Value == 0)
+        {
+            readingState = databit;
+        }
+    }
+    else if (readingState == databit)
+    {
+        Serial.println("databit");
+        if (receivedFullBit)
+        {
+            Serial.println("fullbit");
+            if (previousReceivedBit == 0 && pinD2Value == 1)
+            {
+                // Shift the existing bits in receivedData to the left by one position and set the least significant bit (LSB) to 0
+                receivedData = (receivedData << 1) | 0b0;
+            }
+            else if (previousReceivedBit == 1 && pinD2Value == 0)
+            {
+                // Shift the existing bits in receivedData to the left by one position and set the LSB to 1
+                receivedData = (receivedData << 1) | 0b1;
+            }
+            receivedFullBit = false;
+            dataCount++;
+        }
+        else
+        {
+            previousReceivedBit = pinD2Value;
+            receivedFullBit = true;
+        }
+        if (dataCount == 16)
+        {
+            readingState = paritybit;
+            dataCount = 0;
+        }
+    }
+    else if (readingState == paritybit)
+    {
+        Serial.println("paritybit");
+        Serial.println(receivedData);
+        readingState = none;
+    }
 }
 
 void IR::SetNewDataReceived()
 {
-    if (!newDataReceived){
-    newDataReceived = true;
+    if (!newDataReceived)
+    {
+        newDataReceived = true;
     }
 }
 
