@@ -107,6 +107,7 @@ void IR::UpdateBlockcount()
 void IR::UpdateReadcount()
 {
     readcount++;
+    Serial.println(PIND &= (1 << PIND2));
 }
 
 bool IR::calculateParity(uint16_t data)

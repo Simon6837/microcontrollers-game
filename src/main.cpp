@@ -55,6 +55,7 @@ volatile bool sendingdata = true;
 uint8_t u = 0;
 bool countset = true;
 uint8_t readinterrupt = 0;
+volatile bool int0FallingEdge = false;
 
 /**
  *  timer1 statistics
@@ -167,6 +168,9 @@ void setup()
   LCD.begin();
   LCD.fillScreen(ILI9341_BLACK);
   LCD.setRotation(2);
+  //need to be done when sending score
+   EICRA |= (1 << ISC01);  // Set falling edge trigger
+   EIMSK |= (1 << INT0);   // Enable INT0 interrupt
   //! This seems unnessesary
   // for (uint8_t j = 0; j < 4; j++) // voor rijen links en rechts j/2 als rest 1 = links als rest = 0 rechts
   // {
@@ -201,12 +205,18 @@ ISR(TIMER0_COMPA_vect)
     readinterrupt = 0;
     ir_comm.UpdateReadcount();
   }
-  if (readinterrupt == T && !countset)
-  {
-    readinterrupt = 0;
-    countset = true;
-  }
+    if (int0FallingEdge && readinterrupt == T && countset)
+    {
+        readinterrupt = 0;
+        countset = false;
+    }
 
+}
+
+ISR(INT0_vect)
+{
+    // Handle INT0 falling edge detection
+    int0FallingEdge = true;
 }
 
 /**
