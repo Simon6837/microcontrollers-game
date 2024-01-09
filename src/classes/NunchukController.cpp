@@ -62,3 +62,9 @@ bool NunchukController::isZButtonPressed()
   nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
   return nunchuk.state.z_button;
 }
+
+bool NunchukController::isCButtonPressed()
+{
+  nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
+  return nunchuk.state.c_button;
+}

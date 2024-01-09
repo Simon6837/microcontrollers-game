@@ -303,7 +303,7 @@ int main(void)
     }
     if (gameState == MENU)
     {
-      menuControlsEnable(nunchukController, LCD);
+      menuControlsEnable(nunchukController, LCD, score);
     }
     if (gameState == SOLO)
     {

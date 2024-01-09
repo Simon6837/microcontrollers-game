@@ -19,6 +19,12 @@ void Score::resetScore()
     displayScore();
 }
 
+void Score::resetHighScore()
+{
+    EEPROM.write(0, 0);
+    EEPROM.write(1, 0);
+}
+
 /**
  * @brief Increases the score by 1 and updates the highscore if needed
  */

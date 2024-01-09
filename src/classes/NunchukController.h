@@ -11,6 +11,7 @@ public:
   uint8_t updatePlayerControl();
   uint8_t updateMenu();
   bool isZButtonPressed();
+  bool isCButtonPressed();
 
 private:
   NunChuk nunchuk; // Declare the Nunchuk object
