@@ -241,12 +241,12 @@ void Enemy::setYOffset(uint16_t newYOffset)
 
 uint8_t Enemy::getXPosition()
 {
-    return (x - 15) + xOffset;
+    return (x - drawOffset) + xOffset;
 }
 
 uint16_t Enemy::getYPosition()
 {
-    return (y - 15) + yOffset;
+    return (y - drawOffset) + yOffset;
 }
 
 uint8_t Enemy::getType()
