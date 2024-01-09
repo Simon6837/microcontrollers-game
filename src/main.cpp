@@ -168,7 +168,7 @@ ISR(TIMER1_COMPA_vect)
     senddata = 0;
     }
   }
-  // bulletList.updateBullets();
+  bulletList.updateBullets();
   counteronesec++;
   if (counteronesec == trespassCheckCounterThreashhold)
   {
@@ -180,13 +180,13 @@ ISR(TIMER1_COMPA_vect)
   if (counteronesec == enemieMoveCounterThreashhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
     senddata = 0xFF0F;
-    // Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
-    // timemovement++;
-    // if (timemovement == maxTimeMovement)
-    // {
-    //   timemovement = 0;
-    // }
-    // counteronesec = 0;
+    Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
+    timemovement++;
+    if (timemovement == maxTimeMovement)
+    {
+      timemovement = 0;
+    }
+    counteronesec = 0;
   }
 }
 
@@ -260,7 +260,7 @@ void checkEnemyTrespass()
 void setup()
 {
   sei();
-  // initTimer2();
+  initTimer2();
   initTimer1();
   initADC();
   initPotpins();
