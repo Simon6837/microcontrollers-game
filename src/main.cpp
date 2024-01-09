@@ -141,7 +141,7 @@ ISR(TIMER1_COMPA_vect)
   counteronesec++;
   if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
-    senddata = 0xFFFF;
+    senddata = 0xFF0F;
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
     if (timemovement == maxTimeMovement)

@@ -3,6 +3,16 @@
 #include <HardwareSerial.h>
 #include <avr/delay.h>
 
+enum IRState {
+    WAITING_FOR_LEADER_START,
+    RECEIVING_LEADER,
+    WAITING_FOR_START,
+    RECEIVING_DATA
+};
+
+volatile IRState irReceiverState = WAITING_FOR_LEADER_START;
+uint16_t receivedDataBuffer = 0;
+uint8_t receivedBitCount = 0;
 const uint8_t BitLength = 1;    // Bitlength is the amount of blocks that represents a bit
 const uint8_t LeaderLength = 5; // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
 uint8_t irblockcount = 0;
@@ -12,6 +22,7 @@ uint8_t readcount = 0;
 bool done = false;
 uint16_t data = 0;
 bool parity = false;
+bool pinD2Value = false;
 
 IR::IR()
 {
@@ -65,7 +76,6 @@ bool IR::StartComm(uint16_t data)
     if (done){
         irblockcount = 0;
         IR::data = data;
-        // Serial.println(data);
         parity = calculateParity(IR::data);
         done = false;
         return true;
@@ -91,7 +101,6 @@ bool IR::commOrder(uint8_t datalength)
         if (done) {
             data = 0;
             timerStop();
-            Serial.println();
             return true;
         }
     }
@@ -107,15 +116,70 @@ void IR::UpdateBlockcount()
 void IR::UpdateReadcount()
 {
     readcount++;
-    Serial.println(PIND &= (1 << PIND2));
+    bool pinD2Value = !(PIND & (1 << PIND2));  // Invert the value to detect "10"
+
+    switch (irReceiverState)
+    {
+    case WAITING_FOR_LEADER_START:
+        if (!pinD2Value)  // Check for "10" pattern indicating the leader pulse start
+        {
+            irReceiverState = RECEIVING_LEADER;
+            receivedBitCount = 0;  // Reset the bit count when transitioning to RECEIVING_LEADER
+        }
+        break;
+
+    case RECEIVING_LEADER:
+        // Implement logic to handle the leader pulse if needed
+        // For example, you may want to wait for a certain number of transitions before proceeding to the next state.
+        // ...
+
+        irReceiverState = WAITING_FOR_START;
+        break;
+
+    case WAITING_FOR_START:
+        if (pinD2Value)  // Check for "10" pattern indicating the start bit
+        {
+            irReceiverState = RECEIVING_DATA;
+            receivedDataBuffer = 0;
+            receivedBitCount = 0;
+        }
+        else
+        {
+            irReceiverState = WAITING_FOR_LEADER_START;  // Go back to waiting for the leader
+        }
+        break;
+
+    case RECEIVING_DATA:
+        if (receivedBitCount % 2 == 0)  // Process every second read (even counts)
+        {
+            receivedDataBuffer |= (pinD2Value << (receivedBitCount / 2));
+        }
+
+        receivedBitCount++;
+
+        // Check if you've received the desired number of bits (adjust as needed)
+        if (receivedBitCount >= 16)  // Assuming 8 bits of data (2 reads per bit)
+        {
+            // Process the received data (e.g., save it to a variable)
+            if (receivedDataBuffer == 0xF0FF)
+            {
+                Serial.println("Received: 0xF0FF");
+            }
+            irReceiverState = WAITING_FOR_LEADER_START;  // Go back to waiting for the leader
+        }
+        break;
+    }
 }
+
+
+
+
 
 bool IR::calculateParity(uint16_t data)
 {
   int count = 0;
   for (int i = 0; i < 16; i++)
   {
-    // Serial.println(data & (1 << i));
     if ((data & (1 << i)) != 0)
     {
       count++;
