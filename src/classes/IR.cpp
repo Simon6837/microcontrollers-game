@@ -23,15 +23,16 @@ enum readingStates
     leader,
     startbit,
     databit,
-    paritybit
+    paritybit,
+    reversing
 };
 static volatile readingStates readingState = none;
 
 static volatile uint8_t leaderReceiveCheck = 0;
 static volatile bool receivedFullBit = false;
 static volatile uint8_t previousReceivedBit = 0;
-static volatile uint16_t receivedData = 0;
 static volatile uint8_t dataCount = 0;
+static volatile uint16_t receivedData = 0;
 
 IR::IR()
 {
@@ -133,7 +134,6 @@ void IR::UpdateReadcount()
 {
     bool pinD2Value = !(PIND & (1 << PIND2)); // Invert the value to detect "10"
                                               // Serial.println(newDataReceived);
-    // Serial.println(pinD2Value);
     if (readingState == none)
     {
         if (pinD2Value == 1)
@@ -144,7 +144,6 @@ void IR::UpdateReadcount()
     }
     else if (readingState == leader)
     {
-        Serial.println("leader");
         Serial.println(leaderReceiveCheck);
         leaderReceiveCheck = (leaderReceiveCheck << 1) | pinD2Value;
         leaderReceiveCheck &= (0b111);
@@ -155,7 +154,6 @@ void IR::UpdateReadcount()
     }
     else if (readingState == startbit)
     {
-        Serial.println("startbit");
 
         if (pinD2Value == 0)
         {
@@ -164,10 +162,8 @@ void IR::UpdateReadcount()
     }
     else if (readingState == databit)
     {
-        Serial.println("databit");
         if (receivedFullBit)
         {
-            Serial.println("fullbit");
             if (previousReceivedBit == 0 && pinD2Value == 1)
             {
                 // Shift the existing bits in receivedData to the left by one position and set the least significant bit (LSB) to 0
@@ -189,13 +185,33 @@ void IR::UpdateReadcount()
         if (dataCount == 16)
         {
             readingState = paritybit;
-            dataCount = 0;
         }
     }
     else if (readingState == paritybit)
     {
-        Serial.println("paritybit");
         Serial.println(receivedData);
+        // TODO: reset all variables with a function
+        readingState = reversing;
+        leaderReceiveCheck = 0;
+        receivedFullBit = false;
+        previousReceivedBit = 0;
+        dataCount = 0;
+    }
+    else if (readingState == reversing)
+    {
+        uint16_t reversedData = 0;
+        uint16_t numBits = sizeof(receivedData) * 8; // Calculate the number of bits in receivedData
+
+        for (uint16_t i = 0; i < numBits; ++i)
+        {
+            reversedData <<= 1;                    // Left shift the reversedData to make space for the next bit
+            reversedData |= (receivedData & 0x01); // OR operation to set the least significant bit of reversedData
+            receivedData >>= 1;                    // Right shift receivedData to get the next bit
+        }
+
+        receivedData = reversedData; // Assign the reversed data back to receivedData
+        Serial.println(receivedData);
+        newDataReceived = true;
         readingState = none;
     }
 }
