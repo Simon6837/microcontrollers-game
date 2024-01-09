@@ -60,7 +60,7 @@ volatile bool trespassCheck;
 const uint8_t defaultMaxTimeMovement = 8;
 const uint8_t defaultCurrentLevel = 1;
 const uint8_t trespassCheckCounterThreshhold = 43;
-const uint8_t enemieMoveCounterThreshhold = 45;
+const uint8_t enemyMoveCounterThreshhold = 45;
 // varibles related to level management
 uint8_t maxTimeMovement = 8;
 uint8_t currentLevel = 1;
@@ -152,7 +152,7 @@ ISR(TIMER1_COMPA_vect)
       trespassCheck = true;
     }
   }
-  if (counteronesec == enemieMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
+  if (counteronesec == enemyMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
