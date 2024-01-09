@@ -36,19 +36,19 @@ uint8_t timemovement = 0;
 // how many times the enemies move before they go down
 const uint8_t maxTimeMovement = 8;
 // variables used for ir
-const uint8_t T = 200;                   // T is the amount of pulses we want per block
+const uint8_t T = 50;                   // T is the amount of pulses we want per block
 const uint8_t Block = 2 * T;            // Block is the amount of times we need an interupt
 const uint8_t LeaderLength = 5;         // LeaderLength is the amount of blocks the leader is transmitted (should always be a multiple of 3 - 1 2/3 are high followed by 1/3 low)
 const uint8_t BitLength = 1;            // Bitlength is the amount of blocks that represents a bit
 const uint8_t ParityLength = 3;         // Paritylength is the amount of blocks that represent the parity bit
-const uint8_t pvpdatalength = 2;        // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
+const uint8_t pvpdatalength = 16;        // pvpbitlegth is the amount of bits that need to be send during a communication in mode pvp
 const uint8_t bit1 = 0b01;              // bitmask for bit 0
 const uint8_t bit2 = 0b10;              // bitmask for bit 1
 volatile uint8_t t = 0;                 // t is the amount of interrupts that have passed
 uint8_t blockcount = 0;                 // blockcount is the amount of blocks that have been send
 uint8_t sending = 0;                    // what is being send (0 = leader, 1 = startbit, 2 = databits, 3 = paritybit)
 volatile uint8_t bitsendcount = 0;      // which bit of the data is being send
-volatile uint8_t senddata = 0b00000011; // data is the data that needs to be send over
+volatile uint16_t senddata = 0xFFFF; // data is the data that needs to be send over
 uint8_t datatosend = 0b00000000;        // data that is being send
 volatile bool parityeven = false;       // used for paritybit
 volatile bool sendingdata = true;
@@ -140,7 +140,7 @@ ISR(TIMER1_COMPA_vect)
   counteronesec++;
   if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
-    senddata = 0b11;
+    senddata = 0xFFFF;
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
     if (timemovement == maxTimeMovement)
@@ -186,7 +186,7 @@ ISR(TIMER0_COMPA_vect)
   t++;
   u++;
   readinterrupt++;
-  if (u == 40)
+  if (u == 10)
   {
     ir_comm.commOrder(pvpdatalength);
     u = 0;
@@ -199,7 +199,7 @@ ISR(TIMER0_COMPA_vect)
   if (readinterrupt == Block)
   {
     readinterrupt = 0;
-    // ir_comm.UpdateReadcount();
+    ir_comm.UpdateReadcount();
   }
   if (readinterrupt == T && !countset)
   {

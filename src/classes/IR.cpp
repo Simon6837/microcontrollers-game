@@ -8,8 +8,9 @@ const uint8_t LeaderLength = 5; // LeaderLength is the amount of blocks the lead
 uint8_t irblockcount = 0;
 uint8_t irsending = 0;
 uint8_t irbitsendcount = 0;
+uint8_t readcount = 0;
 bool done = false;
-uint8_t data = 0;;
+uint16_t data = 0;
 bool parity = false;
 
 IR::IR()
@@ -58,12 +59,13 @@ void IR::timerStop()
     TCCR0A &= ~(1 << COM0A0);
 }
 
-bool IR::StartComm(uint8_t data)
+bool IR::StartComm(uint16_t data)
 {
     timerStart();
     if (done){
         irblockcount = 0;
         IR::data = data;
+        // Serial.println(data);
         parity = calculateParity(IR::data);
         done = false;
         return true;
@@ -102,10 +104,15 @@ void IR::UpdateBlockcount()
     irblockcount++;
 }
 
-bool IR::calculateParity(uint8_t data)
+void IR::UpdateReadcount()
+{
+    readcount++;
+}
+
+bool IR::calculateParity(uint16_t data)
 {
   int count = 0;
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < 16; i++)
   {
     // Serial.println(data & (1 << i));
     if ((data & (1 << i)) != 0)
@@ -151,7 +158,7 @@ void IR::SendStartbit()
     }
 }
 
-void IR::SendDatabit(uint8_t datatosend, uint8_t datalength)
+void IR::SendDatabit(uint16_t datatosend, uint8_t datalength)
 {
     if (irblockcount == 0)
     {
