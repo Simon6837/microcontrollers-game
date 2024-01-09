@@ -177,9 +177,10 @@ ISR(TIMER1_COMPA_vect)
   }
   if (sharestate)
   {
-    if (counteronesec == 5)
+    if (counteronesec == 30)
     {
       senddata = score.getHighscore();
+      counteronesec = 0;
     }
     // Serial.println(senddata);
     if (senddata)
