@@ -13,8 +13,10 @@
 
 // values to draw the player
 #define PLAYER_HEIGHT 23
+#define PLAYER_SIDE_HEIGHT 21
 #define PLAYER_WIDTH 23
 #define PLAYER_OFFSET 10
+const uint8_t maxLives = 3;
 
 uint8_t liveDisplay[4] {0xFF, 0xFE, 0xBE, 0xB6}; //hexvalues for {0, 1, 2, 3} lives
 
@@ -85,13 +87,13 @@ void Player::clearPlayer()
     {
         // remove the extra pixels on the right side of the player
 
-        for (int drawX = 21; drawX < PLAYER_WIDTH + PLAYER_SPEED; ++drawX)
+        for (int drawX = PLAYER_SIDE_HEIGHT; drawX < PLAYER_WIDTH + PLAYER_SPEED; ++drawX)
         {
             // Draw pixel using the color value in the array
             LCD->drawPixel((x + drawX) - PLAYER_OFFSET + PLAYER_SPEED, (y + drawY), ILI9341_BLACK);
         }
         // remove the extra pixels on the left side of the player
-        for (int drawX = 0; drawX < (PLAYER_WIDTH - 21); ++drawX)
+        for (int drawX = 0; drawX < (PLAYER_WIDTH - PLAYER_SIDE_HEIGHT); ++drawX)
         {
             // Draw pixel using the color value in the array
             LCD->drawPixel((x + drawX) - PLAYER_OFFSET - PLAYER_SPEED, (y + drawY), ILI9341_BLACK);
@@ -149,7 +151,7 @@ void Player::controlPlayer()
 */
 void Player::displayLives()
 {
-    if (lives > 3) {
+    if (lives > maxLives) {
         lives = 0;
     }
     Wire.beginTransmission(0X21);

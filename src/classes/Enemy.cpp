@@ -3,9 +3,11 @@
 #define Enemy_speed 10
 #define ENEMY_HEIGHT 30
 #define ENEMY_WIDTH 30
-#define ENEMY_TYPES 4
+#define ENEMY_TYPES_AMOUNT 4
+
 extern uint8_t shouldDrawEnemy;
-static const uint16_t enemyArt[ENEMY_TYPES][ENEMY_HEIGHT][ENEMY_WIDTH] PROGMEM = {
+const uint8_t drawOffset = 15;
+static const uint16_t enemyArt[ENEMY_TYPES_AMOUNT][ENEMY_HEIGHT][ENEMY_WIDTH] PROGMEM = {
     {{ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK},
      {ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK},
      {ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_WHITE, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK, ILI9341_BLACK},
@@ -139,7 +141,7 @@ void Enemy::drawEnemy()
 {
     if (type == 0)
     {
-        LCD->fillRect((x - 15) + xOffset, (y - 15) + yOffset, 30, 30, ILI9341_BLACK);
+        LCD->fillRect((x - drawOffset) + xOffset, (y - drawOffset) + yOffset, 30, 30, ILI9341_BLACK);
         return;
     }
     for (int drawY = 0; drawY < ENEMY_HEIGHT; ++drawY)
@@ -149,13 +151,13 @@ void Enemy::drawEnemy()
             // Draw pixel using the color value in the array
             // TODO: Remove turning off the interupt and just turn off the timer
             cli();
-            LCD->drawPixel(((x - 15) + xOffset + drawX), (y - 15 + yOffset + drawY), pgm_read_word(&enemyArt[type - 1][drawY][drawX]));
+            LCD->drawPixel(((x - drawOffset) + xOffset + drawX), (y - drawOffset + yOffset + drawY), pgm_read_word(&enemyArt[type - 1][drawY][drawX]));
             sei();
         }
     }
 
     // clear next to the player
-    LCD->fillRect((x - 19) + xOffset, (y - 15) + yOffset, 4, 30, ILI9341_BLACK);
+    LCD->fillRect((x - (drawOffset +4)) + xOffset, (y - drawOffset) + yOffset, 4, 30, ILI9341_BLACK);
 }
 /**
  * @brief Clears the screen where the enemies are, this is used when the enemies move to the next row
@@ -175,7 +177,7 @@ void Enemy::moveRowFix()
 */
 static uint8_t Enemy::getRandomType()
 {
-    return rand() % ENEMY_TYPES + 1;
+    return rand() % ENEMY_TYPES_AMOUNT + 1;
 }
 
 
@@ -189,15 +191,15 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
             
             // Move enemies to the next row
             enemiesArray[0][0].moveRowFix();
-            for (uint8_t j = 3; j > 0; j--)
+            for (uint8_t j = maxEnemyRows - 1; j > 0; j--)
             {
-                for (uint8_t i = 0; i < 5; i++)
+                for (uint8_t i = 0; i < maxEnemyColumns; i++)
                 {
                     // copy row above
                     enemiesArray[j][i].setType(enemiesArray[j - 1][i].getType());
                 }
             }
-            for (uint8_t i = 0; i < 5; i++)
+            for (uint8_t i = 0; i < maxEnemyColumns; i++)
             {
                 // set type of new row
                 enemiesArray[0][i].setType(getRandomType());
@@ -206,9 +208,9 @@ static void Enemy::moveEnemy(Enemy (*enemiesArray)[5], uint8_t timemovement, uin
             timemovement = 0;
         }
         // Move enemies horizontally
-        for (uint8_t j = 0; j < 4; j++)
+        for (uint8_t j = 0; j < maxEnemyRows; j++)
         {
-            for (uint8_t i = 0; i < 5; i++)
+            for (uint8_t i = 0; i < maxEnemyColumns; i++)
             {
                 enemiesArray[j][i].setXOffset((i * 40) + (4 * timemovement));
                 enemiesArray[j][i].setYOffset((j * 50));
@@ -239,12 +241,12 @@ void Enemy::setYOffset(uint16_t newYOffset)
 
 uint8_t Enemy::getXPosition()
 {
-    return (x - 15) + xOffset;
+    return (x - drawOffset) + xOffset;
 }
 
 uint16_t Enemy::getYPosition()
 {
-    return (y - 15) + yOffset;
+    return (y - drawOffset) + yOffset;
 }
 
 uint8_t Enemy::getType()

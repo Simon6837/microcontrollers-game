@@ -4,7 +4,8 @@
 
 #define NUNCHUK_ADDRESS 0x52
 #define BAUDRATE 9600
-
+const uint8_t joystickLeftThreshold = 115;
+const uint8_t joystickRightThreshold = 140;
 NunchukController::NunchukController() {}
 
 void NunchukController::initialize()
@@ -27,12 +28,12 @@ void NunchukController::initialize()
 uint8_t NunchukController::updatePlayerControl()
 {
   nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
-  if (nunchuk.state.joy_x_axis < 115)
+  if (nunchuk.state.joy_x_axis < joystickLeftThreshold)
   {
     // Code to move player left
     return 0;
   }
-  else if (nunchuk.state.joy_x_axis > 140)
+  else if (nunchuk.state.joy_x_axis > joystickRightThreshold)
   {
     // Code to move player right
     return 1;
@@ -43,12 +44,12 @@ uint8_t NunchukController::updatePlayerControl()
 uint8_t NunchukController::updateMenu()
 {
   nunchuk.getState(NUNCHUK_ADDRESS); // Update Nunchuk state
-  if (nunchuk.state.joy_y_axis < 115)
+  if (nunchuk.state.joy_y_axis < joystickLeftThreshold)
   {
     // Code to move player left
     return 0;
   }
-  else if (nunchuk.state.joy_y_axis > 140)
+  else if (nunchuk.state.joy_y_axis > joystickRightThreshold)
   {
     // Code to move player right
     return 1;

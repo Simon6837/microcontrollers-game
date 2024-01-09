@@ -2,10 +2,11 @@
 #include <EEPROM.h>
 
 extern uint8_t currentLevel;
+
 Score::Score(Adafruit_ILI9341 *lcd)
 {
     LCD = lcd;
-    if (EEPROM.read(0) == 255 && EEPROM.read(1) == 255)
+    if (EEPROM.read(0) == 0xFF && EEPROM.read(1) == 0xFF)
     {
         EEPROM.write(0, 0);
         EEPROM.write(1, 0);

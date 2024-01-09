@@ -19,18 +19,29 @@
 #define TFT_DC 9  // Data/command line for TFTú
 // setup devices
 Adafruit_ILI9341 LCD = Adafruit_ILI9341(TFT_CS, TFT_DC);
+const int brightnessBottomLimit = 10;
 NunchukController nunchukController;
-// varibles needed for the game
+// varibles needed for the drawFunctions
 bool playerIsMoving = false;
-// current gameStates: 0 (menu), 1 (solo), 2 (game-over)
-volatile uint8_t gameState = 0;
-volatile int8_t menuState = 0;
-uint8_t rotationState = 0;
+const uint8_t playerInitialXPosition = 120;
+const uint16_t playerInitialYPosition = 280;
 uint8_t shouldDrawEnemy = 4;
 uint8_t drawEnemyIndex = 0;
+// menu related varibles
+enum gameStates
+{
+  MENU,
+  SOLO,
+  GAMEOVER
+};
+volatile gameStates gameState = MENU;
+volatile int8_t menuState = 0;
+bool rotationState = false;
 bool allowGameToStart = false;
 // enemies array, initialized here to prevent stack overflow
-Enemy enemies[4][5] = {
+const uint8_t maxEnemyRows = 4;
+const uint8_t maxEnemyColumns = 5;
+Enemy enemies[maxEnemyRows][maxEnemyColumns] = {
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
     {Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0), Enemy(30, 35, &LCD, 0)},
@@ -44,14 +55,18 @@ IR ir_comm;
 uint8_t counteronesec = 0;
 uint8_t timemovement = 0;
 volatile bool redrawEnemy = true;
-volatile uint8_t trespassCheck;
+volatile bool trespassCheck;
 // how many times the enemies move before they go down
 const uint8_t defaultMaxTimeMovement = 8;
 const uint8_t defaultCurrentLevel = 1;
+const uint8_t trespassCheckCounterThreshhold = 43;
+const uint8_t enemyMoveCounterThreshhold = 45;
 // varibles related to level management
 uint8_t maxTimeMovement = 8;
 uint8_t currentLevel = 1;
 uint8_t downMovementCount = 0;
+uint8_t downMovementCountTreashhold = 5;
+volatile uint8_t maxSoloLives = 1;
 
 /**
  *  timer1 statistics
@@ -98,6 +113,9 @@ void initADC(void)
   ADMUX |= (1 << ADLAR);                                 // ADC Left adjust
 }
 
+/**
+ * @brief Initializes the pins for the potentiometer that controls the brightness of the screen
+ */
 void initPotpins()
 {
   DDRD |= (1 << DDD5) | (1 << DDD4) | (1 << DDD3);
@@ -106,7 +124,7 @@ void initPotpins()
 
 ISR(ADC_vect)
 {
-  if (ADCH <= 10)
+  if (ADCH <= brightnessBottomLimit)
   { // limit the brightness to prevent flickering on the screen
     return;
   }
@@ -127,14 +145,14 @@ ISR(TIMER1_COMPA_vect)
 {
   bulletList.updateBullets();
   counteronesec++;
-  if (counteronesec == 43)
+  if (counteronesec == trespassCheckCounterThreshhold)
   {
     if (timemovement == (maxTimeMovement - 1))
     {
-      trespassCheck = 1;
+      trespassCheck = true;
     }
   }
-  if (counteronesec == 45) // TODO: remove magic number (could be made dynamic to increase difficulty)
+  if (counteronesec == enemyMoveCounterThreshhold) // TODO: remove magic number (could be made dynamic to increase difficulty)
   {
     Enemy::moveEnemy(enemies, timemovement, maxTimeMovement);
     timemovement++;
@@ -142,7 +160,7 @@ ISR(TIMER1_COMPA_vect)
     {
       if (maxTimeMovement != 1)
       {
-        if (downMovementCount == 5)
+        if (downMovementCount == downMovementCountTreashhold)
         {
           maxTimeMovement--;
           downMovementCount = 0;
@@ -160,9 +178,9 @@ ISR(TIMER1_COMPA_vect)
 void resetEnemies()
 {
   // reset all enemies to their default state
-  for (uint8_t j = 0; j < 4; j++)
+  for (uint8_t j = 0; j < maxEnemyRows; j++)
   {
-    for (uint8_t i = 0; i < 5; i++)
+    for (uint8_t i = 0; i < maxEnemyColumns; i++)
     {
       enemies[j][i].setType(0);
       enemies[j][i].setYOffset(0);
@@ -183,12 +201,12 @@ void startGame()
   currentLevel = defaultCurrentLevel;
   downMovementCount = 0;
   LCD.fillScreen(ILI9341_BLACK);
-  LCD.fillScreen(ILI9341_BLACK);
-  gameState = 1;
+  gameState = SOLO;
   TIMSK1 |= (1 << OCIE1A);
-  player.x = 120;
-  player.y = 280;
-  player.lives = 1;
+  player.x = playerInitialXPosition;
+  player.y = playerInitialYPosition;
+  //TODO: make the lives dynamic based on gamemode
+  player.lives = maxSoloLives;
   player.displayLives();
   player.drawPlayer();
   score.resetScore();
@@ -201,19 +219,19 @@ void startGame()
 */
 void checkEnemyTrespass()
 {
-  for (uint8_t i = 0; i < 5; i++)
+  for (uint8_t i = 0; i < maxEnemyColumns; i++)
   {
-    if (trespassCheck == 1)
+    if (trespassCheck == true)
     {
-      if (enemies[3][i].getType() != 0)
+      if (enemies[maxEnemyRows - 1][i].getType() != 0)
       {
         player.lives--;
         player.displayLives();
-        trespassCheck = 0;
+        trespassCheck = false;
       }
     }
   }
-  trespassCheck = 0;
+  trespassCheck = false;
   if (player.lives == 0)
   {
     gameOver(LCD);
@@ -262,7 +280,7 @@ void drawEnemies()
   {
     enemies[shouldDrawEnemy - 1][drawEnemyIndex].drawEnemy();
     drawEnemyIndex++;
-    if (drawEnemyIndex == 5)
+    if (drawEnemyIndex == maxEnemyColumns)
     {
       drawEnemyIndex = 0;
       shouldDrawEnemy--;
@@ -278,24 +296,25 @@ int main(void)
   setup();
   while (1)
   {
+    //TODO: turn this into a switch case and move the SOLO code to a function
     if (allowGameToStart == true)
     {
       startGame();
     }
-    if (gameState == 0)
+    if (gameState == MENU)
     {
       menuControlsEnable(nunchukController, LCD);
     }
-    if (gameState == 1)
+    if (gameState == SOLO)
     {
       player.controlPlayer();
       drawEnemies();
-      if (trespassCheck == 1)
+      if (trespassCheck == true)
       {
         checkEnemyTrespass();
       }
     }
-    if (gameState == 2)
+    if (gameState == GAMEOVER)
     {
       dismissGameOver(nunchukController, LCD);
     }

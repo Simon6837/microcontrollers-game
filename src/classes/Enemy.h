@@ -3,7 +3,8 @@
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
-
+extern const uint8_t maxEnemyRows;
+extern const uint8_t maxEnemyColumns;
 class Enemy
 {
 private:
