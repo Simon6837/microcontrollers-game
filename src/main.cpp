@@ -194,7 +194,7 @@ ISR(TIMER1_COMPA_vect)
     else
       sameScoreCount = 0;
     LastReceivedScore = receivedData;
-    if (sameScoreCount >= 3 && receivedData != 0 && receivedData < 100)
+    if (sameScoreCount >= 3 && receivedData != 0 && receivedData < 500)
     {
       score.setHighscoreFromShare(receivedData);
       sameScoreCount = 0;
