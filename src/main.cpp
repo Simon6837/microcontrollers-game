@@ -182,6 +182,12 @@ ISR(TIMER1_COMPA_vect)
       senddata = score.getHighscore();
       counteronesec = 0;
     }
+    uint16_t receivedData = IR::getReceivedData();
+    if (receivedData != 0 && receivedData < 500)
+    {
+      score.setHighscoreFromShare(receivedData);
+    }
+
     // Serial.println(senddata);
     if (senddata)
     {

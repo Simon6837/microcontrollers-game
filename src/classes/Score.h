@@ -14,6 +14,7 @@ public:
     uint16_t getHighscore();
     void increaseScore();
     void setHighscore();
+    void setHighscoreFromShare(uint16_t newScore);
     void displayScore();
     void resetScore();
     void resetHighScore();

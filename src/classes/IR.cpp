@@ -34,6 +34,10 @@ static volatile uint8_t previousReceivedBit = 0;
 static volatile uint8_t dataCount = 0;
 static volatile uint16_t receivedData = 0;
 
+uint16_t IR::getReceivedData() {
+    return receivedData;
+}
+
 IR::IR()
 {
 }

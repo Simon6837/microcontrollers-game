@@ -50,6 +50,17 @@ void Score::setHighscore()
     }
 }
 
+void Score::setHighscoreFromShare(uint16_t newScore)
+{
+    if (newScore > getHighscore())
+    {
+        byte lowByte = newScore & 0xFF;         // Get the low byte of the score
+        byte highByte = (newScore >> 8) & 0xFF; // Get the high byte of the score
+        EEPROM.write(0, lowByte);               // Write the low byte to address 0
+        EEPROM.write(1, highByte);              // Write the high byte to address 1
+    }
+}
+
 uint16_t Score::getHighscore()
 {
     byte lowByte = EEPROM.read(0);  // Read the low byte from address 0

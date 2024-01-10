@@ -12,6 +12,7 @@ public:
     void UpdateReadcount();
     void SetNewDataReceived();
     void timerfullStop();
+    static uint16_t getReceivedData();
     
 private:
     uint8_t blockcount;
