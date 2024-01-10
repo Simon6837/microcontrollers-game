@@ -33,9 +33,10 @@ static volatile bool receivedFullBit = false;
 static volatile uint8_t previousReceivedBit = 0;
 static volatile uint8_t dataCount = 0;
 static volatile uint16_t receivedData = 0;
+static volatile uint16_t fullReceivedData = 0;
 
 uint16_t IR::getReceivedData() {
-    return receivedData;
+    return fullReceivedData;
 }
 
 IR::IR()
@@ -220,7 +221,7 @@ void IR::UpdateReadcount()
             receivedData >>= 1;                    // Right shift receivedData to get the next bit
         }
 
-        receivedData = reversedData; // Assign the reversed data back to receivedData
+        fullReceivedData = reversedData; // Assign the reversed data back to receivedData
         Serial.println(receivedData);
         newDataReceived = true;
         readingState = none;

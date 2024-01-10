@@ -89,9 +89,11 @@ bool countset = true;
 uint8_t readinterrupt = 0;
 volatile bool int0FallingEdge = false;
 volatile uint8_t maxSoloLives = 1;
-
+// sharing highscores variables
 bool toggled = true;
 bool gamerunning = false;
+uint16_t LastReceivedScore = 0;
+uint8_t sameScoreCount = 0;
 
 /**
  *  timer1 statistics
@@ -180,12 +182,22 @@ ISR(TIMER1_COMPA_vect)
     if (counteronesec == 30)
     {
       senddata = score.getHighscore();
+      Serial.print("Senddata: ");
+      Serial.println(senddata);
+      Serial.print("Highscore: ");
+      Serial.println(score.getHighscore());
       counteronesec = 0;
     }
     uint16_t receivedData = IR::getReceivedData();
-    if (receivedData != 0 && receivedData < 500)
+    if (receivedData == LastReceivedScore)
+      sameScoreCount++;
+    else
+      sameScoreCount = 0;
+    LastReceivedScore = receivedData;
+    if (sameScoreCount >= 3 && receivedData != 0 && receivedData < 100)
     {
       score.setHighscoreFromShare(receivedData);
+      sameScoreCount = 0;
     }
 
     // Serial.println(senddata);
