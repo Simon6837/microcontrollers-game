@@ -256,7 +256,7 @@ void checkEnemyTrespass()
   trespassCheck = false;
   if (player.lives == 0)
   {
-    gameOver(LCD);
+    gameOver(LCD, score.getScore());
   }
 }
 

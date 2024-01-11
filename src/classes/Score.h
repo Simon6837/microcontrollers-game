@@ -16,6 +16,7 @@ public:
     void setHighscore();
     void displayScore();
     void resetScore();
+    uint16_t getScore();
 };
 
 #endif // SCORE_H

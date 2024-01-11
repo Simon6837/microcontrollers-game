@@ -10,6 +10,12 @@ extern volatile gameStates gameState;
 extern volatile int8_t menuState;
 extern bool rotationState;
 extern bool allowGameToStart;
+volatile uint16_t finalScore;
+char finalScoreDigit1;
+char finalScoreDigit2;
+char finalScoreDigit3;
+char finalScoreDigit4;
+
 
 /**
  *@brief shows the menu screen with the options to play single player, versus, or coop
@@ -171,8 +177,12 @@ void menuControlsEnable(NunchukController &nunchukController, Adafruit_ILI9341 &
 /**
  *@brief clears screen to show a game over message
  */
-void gameOver(Adafruit_ILI9341 &LCD)
+void gameOver(Adafruit_ILI9341 &LCD, uint16_t finalScore)
 {
+    finalScoreDigit1 = char(finalScore / 1000 % 10);
+    finalScoreDigit2 = char(finalScore / 100 % 10);
+    finalScoreDigit3 = char(finalScore / 10 % 10);
+    finalScoreDigit4 = char(finalScore % 10);
     gameState = GAMEOVER;
     TIMSK1 &= ~(1 << OCIE1A);
     LCD.fillScreen(ILI9341_WHITE);
@@ -185,6 +195,21 @@ void gameOver(Adafruit_ILI9341 &LCD)
     LCD.drawChar(90, 90, 'V', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
     LCD.drawChar(130, 90, 'E', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
     LCD.drawChar(170, 90, 'R', ILI9341_WHITE, ILI9341_WHITE, 4, 4);
+    LCD.drawChar(40, 180, 'Y', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(52, 180, 'O', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(64, 180, 'U', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(76, 180, 'R', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(93, 180, 'S', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(105, 180, 'C', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(117, 180, 'O', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(129, 180, 'R', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(141, 180, 'E', ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    if (finalScoreDigit1 !=0) {
+        LCD.drawChar(159, 180, finalScoreDigit1+48, ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    }
+    LCD.drawChar(171, 180, finalScoreDigit2+48, ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(183, 180, finalScoreDigit3+48, ILI9341_WHITE, ILI9341_WHITE, 2, 2);
+    LCD.drawChar(195, 180, finalScoreDigit4+48, ILI9341_WHITE, ILI9341_WHITE, 2, 2);
 }
 
 /**

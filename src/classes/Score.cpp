@@ -69,3 +69,7 @@ void Score::displayScore()
     LCD->print("Level: ");
     LCD->print(currentLevel);
 }
+
+uint16_t Score::getScore() {
+    return score;
+}
